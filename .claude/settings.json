@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS": "3",
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(scripts/quality-gate.sh)",
+      "Bash(scripts/quality-gate.sh *)",
+      "Bash(./mvnw *)",
+      "Bash(mvn *)",
+      "Bash(npm ci)",
+      "Bash(npm ci *)",
+      "Bash(npm install)",
+      "Bash(npm test)",
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(npm audit *)",
+      "Bash(npx prettier *)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(npx @astryxdesign/cli *)",
+      "Bash(node .claude/hooks/*)",
+      "Bash(docker build *)",
+      "Bash(docker run *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch *)",
+      "Bash(git pull origin *)",
+      "Bash(git push -u origin claude/*)",
+      "Bash(git push origin claude/*)",
+      "Bash(git ls-files *)",
+      "Bash(curl -s http://localhost:8080/*)",
+      "Bash(curl -sS http://localhost:8080/*)"
+    ],
+    "deny": [
+      "Edit(/docs/PRD.md)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Read(**/.env)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push * --force*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(git branch -D *)",
+      "Bash(git push origin --delete *)",
+      "Bash(git reset --hard *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-protected-files.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.mjs\"",
+            "timeout": 300
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
