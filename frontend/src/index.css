@@ -1,0 +1,4 @@
+/* Ensures Vite emits a CSS asset for StyleX aggregation (same as the official Astryx Vite example). */
+:root {
+  --stylex-injection: 0;
+}

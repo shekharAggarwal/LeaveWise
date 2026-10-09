@@ -1,0 +1,28 @@
+# Build output
+backend/target/
+frontend/dist/
+frontend/coverage/
+dist/
+*.zip
+
+# Dependencies
+node_modules/
+
+# Local environment and secrets (never committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Claude Code: personal settings and agent memory stay local
+.claude/settings.local.json
+
+# Editors and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# jqwik run state
+.jqwik-database

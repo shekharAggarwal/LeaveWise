@@ -1,0 +1,47 @@
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import stylex from '@stylexjs/eslint-plugin';
+import tseslint from 'typescript-eslint';
+
+// Astryx rules from the brief, enforced in lint so they don't rely on review alone.
+const astryxGuardrails = [
+  {
+    selector: "JSXOpeningElement[name.name='div']",
+    message: 'Use an Astryx layout component (VStack, HStack, Box...) instead of a raw <div>.',
+  },
+  {
+    selector: "JSXAttribute[name.name='style']",
+    message:
+      'No inline style={{}}. Use a component prop, or StyleX xstyle when no prop does the job.',
+  },
+];
+
+export default tseslint.config(
+  {ignores: ['dist', 'node_modules', 'coverage']},
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [js.configs.recommended, ...tseslint.configs.strict],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.browser,
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+      '@stylexjs': stylex,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': ['error', {allowConstantExport: true}],
+      '@stylexjs/valid-styles': 'error',
+      '@stylexjs/no-unused': 'error',
+      'no-restricted-syntax': ['error', ...astryxGuardrails],
+    },
+  },
+  {
+    files: ['vite.config.ts', 'eslint.config.js'],
+    languageOptions: {globals: globals.node},
+  },
+);
