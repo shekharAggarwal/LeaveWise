@@ -11,6 +11,32 @@ Every session starts by reading `CLAUDE.md` and this file, then continues from t
 - Astryx packages pinned at 0.6.6 (the npm `latest` tag on 2026-10-09). github.com is blocked from the cloud VM,
   but raw.githubusercontent.com works, so the official `apps/example-vite` files were read from there.
 
+## Decisions and interpretations (for review at STOP 1)
+
+Made without asking, as the brief says; each is also in the ADR or doc named.
+
+- `theme add stone --import`: CLI 0.6.6 has no `--import` flag ("unknown option"). Ran `theme add stone`; its copy
+  was identical to the package source, so the app imports the pinned `@astryxdesign/theme-stone` package instead
+  and `package.json` declares `"astryx": {"theme": "stone"}` for `astryx doctor` (ADR 0008).
+- Vitest uses StyleX's Babel plugin instead of the Astryx Vite plugin, which kept test runs open 10 s (ADR 0008).
+- TypeScript 6.0.3 and plugin-react 5.2.0 (the example's majors) instead of the newest majors: typescript-eslint
+  8.71 supports TypeScript below 6.1 only.
+- Current year: days up to and including today don't count toward a break, even if they're days off (ADR 0006).
+- Year edges use only bundled holiday lists for the adjacent years; without one, only weekly offs count (ADR 0006).
+- Free long weekends are computed by the planner (a PRD planning rule, and required for the 0-leave case) even though
+  the Results table lists them as Nice to have; a run that a leave extends is a break, not a free long weekend.
+- `summary.totalDaysOff` = days inside breaks (the objective), not counting free long weekends (docs/API.md).
+- Error and note copy the PRD doesn't give (year, break style, paste reasons, 413, 429, notes) is this project's
+  wording, listed in docs/API.md.
+- Weekly offs may be empty (0 to 6 days); the PRD only forbids all seven.
+- The "no break possible" note omits the shorter-style suggestion when the style is already Long weekends.
+- Pasting more than 50 lines: lines 51+ are reported as not loaded; lines 1 to 50 still load.
+- "Today" is in Asia/Kolkata on the server; the browser takes it from `GET /api/options`.
+- Docker: the CLI is installed but no daemon is running in the cloud VM (`/var/run/docker.sock` missing). To try in
+  Phase 5 (start `dockerd`); if it can't run, the image build becomes a LAPTOP/CI step.
+- Skills and subagents created in this session load only in the next session, so in Phase 1 the `log-ai-failure`
+  steps were followed by hand (AI failures 1 to 3).
+
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
 - [x] Create docs/ai/PROGRESS.md
@@ -18,30 +44,30 @@ Every session starts by reading `CLAUDE.md` and this file, then continues from t
 - [x] Read docs/PRD.md in full (copied from the owner's Claude Docs page)
 
 ## Phase 1: Context engineering and scaffolding (ends at STOP 1)
-- [ ] Empty backend project (Java 21, Spring Boot, Maven) that builds
-- [ ] Empty frontend project (React 19, TypeScript, Vite, Node 22) that builds
-- [ ] Install Astryx with exact pinned versions, add the `astryx` npm script
-- [ ] `npm run astryx -- theme add stone --import`
-- [ ] Short frontend/CLAUDE.md, then `npx @astryxdesign/cli init --features agents --agent claude`
-- [ ] Root CLAUDE.md
-- [ ] docs/ARCHITECTURE.md with a Mermaid diagram
-- [ ] docs/API.md (endpoints, request and response JSON, error format)
-- [ ] ADR: single deployable
-- [ ] ADR: no database
-- [ ] ADR: optimisation algorithm
-- [ ] ADR: deterministic tie-breaks
-- [ ] ADR: brute-force oracle testing
-- [ ] ADR: year-edge handling
-- [ ] ADR: holiday data source
-- [ ] ADR: Astryx (why, beta risk, version pinning, licence)
-- [ ] docs/QA.md: test strategy and PRD rule/edge case to test map
-- [ ] Subagents: Explore, gate-runner, test-designer, edge-case-hunter, code-reviewer, security-reviewer, ui-reviewer
-- [ ] Skill: quality-gate
-- [ ] Skill: log-ai-failure
-- [ ] Skill: astryx-ui
-- [ ] .claude/settings.json: format hook, PRD/.env edit block, frontend install at session start, PROGRESS re-inject after compaction, subagent limits, permissions allowlist
-- [ ] scripts/quality-gate.sh
-- [ ] docs/ai/AI_WORKFLOW.md, docs/ai/AI_FAILURE_LOG.md, docs/ai/REVIEW_LOG.md (empty), docs/HUMAN_TODO.md
+- [x] Empty backend project (Java 21, Spring Boot, Maven) that builds
+- [x] Empty frontend project (React 19, TypeScript, Vite, Node 22) that builds
+- [x] Install Astryx with exact pinned versions, add the `astryx` npm script
+- [x] `npm run astryx -- theme add stone --import` (flag does not exist in CLI 0.6.6; see Decisions)
+- [x] Short frontend/CLAUDE.md, then `npx @astryxdesign/cli init --features agents --agent claude`
+- [x] Root CLAUDE.md
+- [x] docs/ARCHITECTURE.md with a Mermaid diagram
+- [x] docs/API.md (endpoints, request and response JSON, error format)
+- [x] ADR: single deployable
+- [x] ADR: no database
+- [x] ADR: optimisation algorithm
+- [x] ADR: deterministic tie-breaks
+- [x] ADR: brute-force oracle testing
+- [x] ADR: year-edge handling
+- [x] ADR: holiday data source
+- [x] ADR: Astryx (why, beta risk, version pinning, licence)
+- [x] docs/QA.md: test strategy and PRD rule/edge case to test map
+- [x] Subagents: Explore, gate-runner, test-designer, edge-case-hunter, code-reviewer, security-reviewer, ui-reviewer
+- [x] Skill: quality-gate
+- [x] Skill: log-ai-failure
+- [x] Skill: astryx-ui
+- [x] .claude/settings.json: format hook, PRD/.env edit block, frontend install at session start, PROGRESS re-inject after compaction, subagent limits, permissions allowlist
+- [x] scripts/quality-gate.sh
+- [x] docs/ai/AI_WORKFLOW.md, docs/ai/AI_FAILURE_LOG.md, docs/ai/REVIEW_LOG.md (empty), docs/HUMAN_TODO.md
 - [ ] STOP 1: context files, subagents, ADRs, recommended answers to PRD open questions, unclear PRD points
 
 ## Phase 2: Planner core (ends at STOP 2)
