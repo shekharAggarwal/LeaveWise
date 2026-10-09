@@ -48,7 +48,7 @@ links each change to the Claude Code session that made it.
 | --- | --- | --- | --- |
 | Explore | Haiku | not run yet | |
 | gate-runner | Haiku | not run yet | |
-| test-designer | Sonnet, high | not run yet | |
+| test-designer | Sonnet, high | Phase 2: wrote 135 planner tests and the brute-force oracle before the code (130 failing on stubs, 5 oracle-only passing). Hit its 40-turn limit once and was resumed to report. Found that the `LEAVES_UNUSED` note was unreachable; its date-level property caught an extra year-edge rule in the first implementation. | Note removed from API and planner; edge rule removed (AI failures 5 and 6). |
 | edge-case-hunter | Opus, high | not run yet | |
 | code-reviewer | Sonnet, high | Phase 1 docs vs PRD (run as a Sonnet general-purpose agent with the code-reviewer brief, because project agents load only in a new session): 10 findings, 0 high, 4 medium, 6 low. Verdict: changes needed. | All 10 fixed in `docs/API.md`, ADR 0003, ADR 0005 and `docs/QA.md`; finding 2 logged as AI failure 4. |
 | security-reviewer | Sonnet, medium | not run yet | |

@@ -57,3 +57,28 @@ Template:
 - Root cause: example data typed by hand without checking weekdays against the rule it illustrates.
 - Rule added: CLAUDE.md, Working rules: "Check example dates in docs with a script (weekday, rule) before writing them."
 
+## 5. Planner added a year-edge rule that no document asked for (2026-10-09)
+- What the AI got wrong: the first `PlanningCalendar.of` implementation stopped the leading year edge at today, so a
+  next-year plan made on 30 Dec didn't count 30 Dec as part of a break crossing 1 January. ADR 0006 and the
+  `PlanningCalendar` javadoc say the whole run of days off before 1 January counts; "not today" applies only to the
+  current year. The wrong version was never committed.
+- How it was caught: test-designer's `PlannerProperties#matchesBruteForceForAFullYearWithUpToTwoLeaves` (its own
+  date-level brute force), counter-example: today 2027-12-30, plan 2028, 1 leave, no weekly offs, holidays
+  2027-12-30, 2027-12-31, 2028-01-01. Expected 4 days in breaks, got 3.
+- Fix: removed the extra condition before commit `d49127e`; the same property guards it.
+- Root cause: the implementation "improved" the spec on the fly instead of following the written contract.
+- Rule added: CLAUDE.md, Working rules: "Code follows the written contract (PRD, ADR, javadoc). To change a rule,
+  update the ADR or javadoc first, then the tests, then the code."
+
+## 6. Specified a note that can never occur (2026-10-09)
+- What the AI got wrong: `docs/API.md` (commits `af1a9c6`, `fc342fa`) defined a `LEAVES_UNUSED` note for "some leaves
+  would not make any break longer". With at least one break, a spare leave on the untaken working day next to a
+  break always makes it longer, so an optimal plan has spare leaves only when every working day is a leave
+  (`LEAVES_LEFT_OVER`); with no break the note is `NO_BREAK_POSSIBLE`.
+- How it was caught: test-designer, while writing `PlannerProperties#notesFollowTheRules`, reported it as unreachable.
+- Fix: removed from `Note.Code`, the planner and `docs/API.md` in `d49127e`; `notesFollowTheRules` checks that spare
+  leaves with a break always mean every working day in the window is a leave.
+- Root cause: output states were listed from intuition without checking each one is reachable under the optimiser.
+- Rule added: CLAUDE.md, Working rules: "Every result state written into a contract needs an example input that
+  produces it; if none exists, it doesn't go in."
+

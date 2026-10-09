@@ -80,3 +80,7 @@ scripts/  quality-gate.sh and delivery scripts
   pinned Vite/TypeScript). (AI failure 1)
 - Run the command that proves a fact (versions, licences, flags, test results) before writing it in a doc. (AI failure 2)
 - Check example dates in docs with a script (weekday, rule) before writing them. (AI failure 4)
+- Code follows the written contract (PRD, ADR, javadoc). To change a rule, update the ADR or javadoc first, then the
+  tests, then the code. (AI failure 5)
+- Every result state written into a contract needs an example input that produces it; if none exists, it doesn't go
+  in. (AI failure 6)
