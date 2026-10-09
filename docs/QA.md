@@ -34,38 +34,43 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 
 ## Coverage map: planning rules
 
+`passing` = green in `scripts/quality-gate.sh` at commit noted in PROGRESS.md (Phase 2). PIT on the planner package:
+180 of 184 mutants killed (98%); the 4 survivors are equivalent or a safety bound (see `docs/ai/PROGRESS.md`).
+
 | PRD rule | Tests | Status |
 | --- | --- | --- |
-| Working day: not a weekly off and not a holiday | `PlanningCalendarTest#workingDayIsNeitherWeeklyOffNorHoliday` | planned |
-| Day off: weekly off, holiday or leave; holiday on a weekly off counts once | `PlanningCalendarTest#holidayOnWeeklyOffIsOneDayOff`, `PlannerRulesTest#holidayOnWeeklyOffCountsOnce` | planned |
-| Leave day always on a working day | `PlannerRulesTest#leavesOnlyOnWorkingDays`, `PlannerProperties#leavesAreWorkingDays` | planned |
-| Break: days off in a row with ≥1 leave and ≥ style length (3, 5, 9) | `PlannerRulesTest#breakNeedsALeaveDay`, `#breakMeetsMinimumLength` (each style) | planned |
-| Best plan: most total days inside breaks within the balance | `PlannerOracleProperties#matchesBruteForce` (1,000+ tries), `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave` | planned |
-| A leave outside a break adds nothing, so none is placed | `PlannerProperties#noLeaveOutsideABreak`, `PlannerRulesTest#unusedLeavesWhenNothingGrows` | planned |
-| Ties: fewer leaves wins | `SelectionOrderTest#equalDaysFewerLeavesWins`, oracle | planned |
-| Ties: then the first earlier leave date wins | `SelectionOrderTest#equalDaysAndLeavesFirstEarlierPositionWins`, oracle | planned |
-| Same inputs always give the same plan | `PlannerProperties#holidayOrderDoesNotMatter`, `#repeatedRunsAreIdentical` | planned |
-| Year edges: leaves stay in the year; breaks count edge weekly offs and known holidays | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#noLeaveOutsideYear`, `#unknownAdjacentYearUsesWeeklyOffsOnly` | planned |
-| Current year: only days after today are planned | `PlanningWindowTest#currentYearStartsTomorrow`, `#todayIsNotCounted`, `ApiOptionsTest#defaultYearFromOctober` | planned |
-| Free long weekends: 3+ days off needing no leave, shown, not counted | `FreeLongWeekendTest#listedButNotCounted`, `#notListedWhenPartOfABreak` | planned |
-| A break can't start right after a day off (maximal runs only) | `CandidateBreaksTest#noStartAfterADayOff` | planned |
-| PRD example: Thursday holiday + Friday leave = 4-day break Thu to Sun | `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave` | planned |
+| Working day: not a weekly off and not a holiday | `PlanningCalendarTest#workingDayIsNeitherWeeklyOffNorHoliday`, `#weekdayHolidayAddsExactlyOneDayOff` | passing |
+| Day off: weekly off, holiday or leave; holiday on a weekly off counts once | `PlanningCalendarTest#holidayOnWeeklyOffIsOneDayOff`, `PlannerRulesTest#holidayOnWeeklyOffCountsOnce` | passing |
+| Leave day always on a working day | `PlannerRulesTest#leavesOnlyOnWorkingDays`, `PlannerProperties#leavesAreWorkingDays` | passing |
+| Break: days off in a row with ≥1 leave and ≥ style length (3, 5, 9) | `PlannerRulesTest#breakNeedsALeaveDay`, `#breakMeetsMinimumLengthLongWeekends`, `#…ShortTrips`, `#…BigTrips`, `BreakOptimizerTest#runsExactlyAsLongAsTheMinimumAreBreaks`, `#runsOneShorterThanTheMinimumAreNotBreaks`, `PlannerProperties#everyBreakIsLongEnoughAndHasALeave` | passing |
+| Best plan: most total days inside breaks within the balance | `PlannerOracleProperties#matchesBruteForce` (1,500 tries), `PlannerProperties#matchesBruteForceOnShortWindows`, `#matchesBruteForceForAFullYearWithUpToTwoLeaves`, `PlannerRulesTest#bestPlanMaximisesTotalDaysAcrossTheYear`, `#leaveBalanceIsNeverExceeded` | passing |
+| A leave outside a break adds nothing, so none is placed | `PlannerProperties#noLeaveOutsideABreak`, `BreakOptimizerTest#leaveNeverPlacedOutsideABreak`, `PlannerRulesTest#unusedLeavesWhenNothingGrows` | passing |
+| Ties: fewer leaves wins | `SelectionOrderTest#equalDaysFewerLeavesWins`, oracle property (compares leave dates, not just totals) | passing |
+| Ties: then the first earlier leave date wins | `SelectionOrderTest#equalDaysAndLeavesFirstEarlierPositionWins`, `#agreesWithTheOraclesTieRule`, `BreakOptimizerTest#equalDaysChooseTheEarliestLeaveDate`, `PlannerRulesTest#earliestLeaveWinsAmongEqualPlans`, oracle | passing |
+| Same inputs always give the same plan | `PlannerProperties#holidayOrderDoesNotMatter`, `#repeatedRunsAreIdentical`, `PlannerRulesTest#sameInputsAlwaysGiveTheSamePlan` | passing |
+| Year edges: leaves stay in the year; breaks count edge weekly offs and known holidays | `YearEdgeTest` (9 tests incl. `#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#noLeaveOutsideYear`, `#unknownAdjacentYearUsesWeeklyOffsOnly`, `#edgeCasesAgreeWithTheBruteForceOracle`), `PlanningCalendarTest#leadingEdge…`, `#trailingEdge…` | passing |
+| Current year: only days after today are planned | `PlanningWindowTest#currentYearStartsTomorrow`, `#todayIsNotCountedEvenIfItIsADayOff`, `#leavesNeverFallOnOrBeforeToday`, `#todayIsReadInTheClocksZone` | passing |
+| Default year: next year from October | `ApiOptionsTest#defaultYearFromOctober` | planned (API) |
+| Free long weekends: 3+ days off needing no leave, shown, not counted | `FreeLongWeekendTest` (13 tests incl. `#listedButNotCounted`, `#notListedWhenPartOfABreak`, `#listedForEveryBreakStyle`), `PlannerProperties#freeLongWeekendsFollowTheRules` | passing |
+| A break can't start right after a day off (maximal runs only) | `CandidateBreaksTest#noStartAfterADayOff`, `#everyBreakIsMaximalOnRandomLookingSequences`, `PlannerProperties#breaksAreMaximalRunsOfDaysOff` | passing |
+| PRD example: Thursday holiday + Friday leave = 4-day break Thu to Sun | `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave`, `BreakOptimizerTest#prdExampleHolidayThursdayLeaveFridayIsFourDays` | passing |
+| Optimiser argument contract; days off per leave | `BreakOptimizerContractTest`, `LeaveBreakTest` | passing |
 
 ## Coverage map: edge cases (PRD list)
 
 | Edge case | Tests | Status |
 | --- | --- | --- |
-| A holiday on a weekly off | `PlannerRulesTest#holidayOnWeeklyOffCountsOnce` | planned |
-| Two holidays on the same date | `HolidayMergeTest#sameDateKeptOnceWithBothNames`, `PlanApiTest#duplicateHolidayDates` | planned |
-| A break that crosses into the next or previous year | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear` | planned |
-| A leap year (2028) | `LeapYearTest#plans366Days`, `#feb29IsAWorkingDayCandidate` | planned |
-| 0 leave days | `PlannerRulesTest#zeroLeavesGivesNoBreaksAndFreeWeekends`, `PlanApiTest#zeroLeavesNote` | planned |
-| More leave days than working days | `PlannerRulesTest#moreLeavesThanWorkingDaysUsesEveryWorkingDay`, `PlanApiTest#leftOverNote` | planned |
-| Only Sunday as a weekly off | `PlannerRulesTest#sundayOnlyWeek`, oracle (random weekly offs) | planned |
-| No weekly off at all (PRD allows any days) | `PlannerRulesTest#noWeeklyOffs`, `PlanApiTest#emptyWeeklyOffsAccepted` | planned |
-| Every holiday unticked | `PlannerRulesTest#noHolidays`, `PlannerForm.test#untickAllHolidays` | planned |
-| Current year, planning from today | `PlanningWindowTest#currentYearStartsTomorrow`, `#planOnThirtyFirstDecember` (empty window, `NO_DAYS_LEFT`), `#windowShorterThanMinimumBreak` | planned |
-| A pasted list with bad lines | `HolidayPasteParserTest#reportsLineAndReasonAndLoadsTheRest`, `#over50Lines`, `HolidayPaste.test` | planned |
+| A holiday on a weekly off | `PlannerRulesTest#holidayOnWeeklyOffCountsOnce`, `PlanningCalendarTest#holidayOnWeeklyOffIsOneDayOff` | passing |
+| Two holidays on the same date | `HolidayMergeTest` (4 tests incl. `#sameDateKeptOnceWithBothNames`); API: `PlanApiTest#duplicateHolidayDates` | planner passing; API planned |
+| A break that crosses into the next or previous year | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#breakExtendsFromPreviousYearThroughWeeklyOffs` | passing |
+| A leap year (2028) | `LeapYearTest` (6 tests incl. `#plans366Days`, `#feb29IsAWorkingDayCandidate`, `#feb29MatchesTheBruteForceOracle`) | passing |
+| 0 leave days | `PlannerRulesTest#zeroLeavesGivesNoBreaksAndFreeWeekends`; API: `PlanApiTest#zeroLeavesNote` | planner passing; API planned |
+| More leave days than working days | `PlannerRulesTest#moreLeavesThanWorkingDaysUsesEveryWorkingDay`, `#leftOverNoteCountsTheLeavesNotUsed`, `PlannerProperties#spareLeavesMeanEveryWorkingDayInTheWindowIsALeave`; API: `PlanApiTest#leftOverNote` | planner passing; API planned |
+| Only Sunday as a weekly off | `PlannerRulesTest#sundayOnlyWeek`, `PlanningCalendarTest#onlySundayAsWeeklyOff`, oracle (random weekly offs) | passing |
+| No weekly off at all (PRD allows any days) | `PlannerRulesTest#noWeeklyOffs`, `PlanningCalendarTest#noWeeklyOffsAndNoHolidaysMeansNoEdges`; API: `PlanApiTest#emptyWeeklyOffsAccepted` | planner passing; API planned |
+| Every holiday unticked | `PlannerRulesTest#noHolidays`, `PlanningCalendarTest#holidaysListIsEmptyWhenEveryHolidayIsUnticked`; UI: `PlannerForm.test#untickAllHolidays` | planner passing; UI planned |
+| Current year, planning from today | `PlanningWindowTest` (11 tests incl. `#currentYearStartsTomorrow`, `#planOnThirtyFirstDecemberHasNoDaysLeft`, `#windowShorterThanMinimumBreakGivesNoBreakPossible`) | passing |
+| A pasted list with bad lines | `HolidayPasteParserTest#reportsLineAndReasonAndLoadsTheRest`, `#over50Lines`, `HolidayPaste.test` | planned (Phase 3) |
 
 ## Coverage map: validation and errors (PRD table)
 
@@ -77,7 +82,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Pasted line not a valid date in the year | Line number and reason; other lines load | `HolidayPasteParserTest`, `HolidayParseApiTest` | planned |
 | Same holiday date added twice | Kept once, both names shown | `HolidayMergeTest`, `BreakList.test#showsBothNames` | planned |
 | 0 leave days | Free long weekends only, note that no leave is used | `PlanApiTest#zeroLeavesNote`, `Results.test#zeroLeaves` | planned |
-| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `PlanApiTest#noBreakPossibleNote`, `#onlyOneNoteInPrecedenceOrder` | planned |
+| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `#onlyOneNote…` (3 tests), `PlannerProperties#notesFollowTheRules`; API: `PlanApiTest#noBreakPossibleNote` | planner passing; API planned |
 
 ## Coverage map: results (Must items)
 
@@ -100,7 +105,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 
 | PRD item | Tests or check | Status |
 | --- | --- | --- |
-| Full-year plan in under 1 second | `PlannerPerformanceTest#fullYearSixtyLeavesUnderOneSecond`, `PlanApiTest` timing | planned |
+| Full-year plan in under 1 second | `PlannerPerformanceTest#fullYearSixtyLeavesUnderOneSecond`, `#bigTripsWithMaximumLeavesAlsoUnderOneSecond`; API: `PlanApiTest` timing | planner passing; API planned |
 | Works from 360 px wide | Playwright screenshots at 360 and 1280 px (laptop or cloud Chromium) | planned |
 | Contrast, keyboard, colour never the only signal | axe in Vitest, keyboard flow test, `YearCalendar.test#labelsEveryKind` | planned |
 | No login, database, tracking cookies; inputs not logged | `PrivacyTest#noSetCookie`, `#requestBodyNotLogged` (captured log output) | planned |
@@ -114,7 +119,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 
 | Item | How | Status |
 | --- | --- | --- |
-| Oracle match on 1,000+ random small calendars | `PlannerOracleProperties#matchesBruteForce` with `tries = 1000` or more | planned |
+| Oracle match on 1,000+ random small calendars | `PlannerOracleProperties#matchesBruteForce`, 1,500 tries, 1,500 checks, all matching | passing |
 | Automated tests cover every planning rule and edge case | The tables above, all `passing` | planned |
 | 3 colleagues each get a plan in under a minute without help | Owner's usability check, recorded in `docs/HUMAN_TODO.md` with real results only | owner |
 | The deployed URL works on a phone | Owner's check after deploy | owner |

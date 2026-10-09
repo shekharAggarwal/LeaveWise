@@ -63,14 +63,11 @@ public final class BreakOptimizer {
           Chain current = best[p][b];
           int days = length + rest.days;
           int leaves = cost + rest.leaves;
-          // Equal totals: take the candidate. Every other option for (p, b) loses the PRD's date
-          // tie-break: skipping p can't use the first working day at or after p, which this
-          // candidate
-          // does, and an earlier-ending candidate at p leaves day j+1 untaken where this one places
-          // a
-          // leave. So the latest candidate with equal totals has the earliest leave dates (ADR
-          // 0004;
-          // the brute-force oracle, which compares dates explicitly, checks it).
+          // Equal totals: take the candidate. Every other option for (p, b) loses the PRD's
+          // date tie-break: skipping p can't use the first working day at or after p, which
+          // this candidate does, and an earlier-ending candidate at p leaves day j+1 untaken
+          // where this one places a leave. So the latest candidate with equal totals has the
+          // earliest leave dates (ADR 0003; the brute-force oracle compares dates and checks it).
           boolean better = days != current.days ? days > current.days : leaves <= current.leaves;
           if (better) {
             best[p][b] = new Chain(p, j, leavePositions(dayOff, p, j, cost), rest);

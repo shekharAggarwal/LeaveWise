@@ -47,6 +47,20 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - Skills and subagents created in this session load only in the next session, so in Phase 1 the `log-ai-failure`
   steps were followed by hand (AI failures 1 to 3).
 
+## Phase 2 results (2026-10-09)
+
+- 141 planner tests pass (135 from test-designer, 6 from edge-case-hunter). Oracle property: 1,500 tries, 1,500
+  checks, all equal to brute force (539 with breaks, 702 with a budget above the working days).
+- PIT on `dev.leavewise.planner`: 180 of 184 mutants killed (98%), line coverage 98%. Survivors: BreakOptimizer
+  line 71 (`>` to `>=` inside `days != current.days ? days > current.days : ...`, equivalent) and line 65
+  (`cost + rest.leaves` to `-`, equivalent: with equal days the candidate never has more leaves; checked
+  exhaustively up to 14 days and on 90k random sequences by edge-case-hunter); PlanningCalendar lines 76 and 85
+  (the 366-day safety bound on edge runs, unreachable through the API and not PRD behaviour).
+- Speed: a full year with 60 leaves plans in 3 to 8 ms (best of 20 after warm-up), against the PRD's 1 second.
+- Open interpretation for the owner (edge-case-hunter): planning next year on 30 or 31 Dec counts today and earlier
+  days in a break that crosses 1 January. The PRD's Year edges rule allows it; ADR 0006 limits "today isn't counted"
+  to the current year.
+
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
 - [x] Create docs/ai/PROGRESS.md
@@ -81,22 +95,22 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] STOP 1: context files, subagents, ADRs, recommended answers to PRD open questions, unclear PRD points
 
 ## Phase 2: Planner core (ends at STOP 2)
-- [ ] test-designer writes failing tests from the PRD planning rules
-- [ ] Day classification
-- [ ] Breaks
-- [ ] Best plan (exact method, provably optimal)
-- [ ] Ties (deterministic)
-- [ ] Year edges
-- [ ] Current-year planning from tomorrow (injected clock)
-- [ ] Free long weekends
-- [ ] Brute-force oracle and jqwik property test on at least 1,000 random calendars
-- [ ] Determinism test: holidays in any order give the same plan
-- [ ] Performance test: full year, 60 leave days, under 1 second
-- [ ] edge-case-hunter attack, then fixes
-- [ ] PIT on the planner package (target at least 80%, real number reported)
-- [ ] log-ai-failure run for every caught AI mistake
-- [ ] quality-gate passes, output shown; branch pushed
-- [ ] STOP 2: algorithm in plain words, worked example, oracle results, mutation score
+- [x] test-designer writes failing tests from the PRD planning rules
+- [x] Day classification
+- [x] Breaks
+- [x] Best plan (exact method, provably optimal)
+- [x] Ties (deterministic)
+- [x] Year edges
+- [x] Current-year planning from tomorrow (injected clock)
+- [x] Free long weekends
+- [x] Brute-force oracle and jqwik property test on at least 1,000 random calendars
+- [x] Determinism test: holidays in any order give the same plan
+- [x] Performance test: full year, 60 leave days, under 1 second
+- [x] edge-case-hunter attack, then fixes
+- [x] PIT on the planner package (target at least 80%, real number reported)
+- [x] log-ai-failure run for every caught AI mistake
+- [x] quality-gate passes, output shown; branch pushed
+- [x] STOP 2: algorithm in plain words, worked example, oracle results, mutation score
 
 ## Phase 3: API and UI
 - [ ] Plan endpoint
