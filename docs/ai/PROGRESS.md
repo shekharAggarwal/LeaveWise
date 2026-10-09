@@ -34,6 +34,9 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - "Today" is in Asia/Kolkata on the server; the browser takes it from `GET /api/options`.
 - Docker: the CLI is installed but no daemon is running in the cloud VM (`/var/run/docker.sock` missing). To try in
   Phase 5 (start `dockerd`); if it can't run, the image build becomes a LAPTOP/CI step.
+- Checked in the VM's Chromium (Playwright, 360 px, light and dark): the Phase 1 shell renders with Stone tokens and no
+  console errors, without importing `astryx.css`. The theme names Montserrat/Figtree but ships no font files, so
+  users without them installed get system fonts. Phase 3: decide whether to self-host the theme fonts.
 - Skills and subagents created in this session load only in the next session, so in Phase 1 the `log-ai-failure`
   steps were followed by hand (AI failures 1 to 3).
 
