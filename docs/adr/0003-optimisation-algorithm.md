@@ -42,10 +42,18 @@ untaken working day.
 is compatible with the DP: for a fixed first interval, the best completion is the best suffix plan, because sums
 add and a shared prefix doesn't change a lexicographic comparison.
 
+**Ties without comparing dates.** At a fixed `(p, b)`, when a candidate `[p, j]` ties the current best on days and
+leaves, the candidate always has the earlier leave dates: skipping `p` can never use the first working day at or
+after `p` (a break starting later than `p` but before that day would start right after a day off), and an
+earlier-ending candidate `[p, j']` leaves day `j' + 1` untaken where `[p, j]` puts a leave. Candidates are tried with
+`j` ascending, so "replace on equal totals" yields exactly the PRD's earliest-dates plan. The first implementation
+compared dates explicitly; mutation testing showed that comparison never changed a result, the argument above
+explains why, and the brute-force oracle (which does compare dates) confirms the simpler rule on 1,500 calendars.
+
 Size: a full year is about 380 positions and budgets 0 to 60. A candidate end is a day just before a working day (or
 the horizon end), and each later end adds at least one leave, so a start has at most 61 candidate ends within the
 budget: under 1.5 million transitions. Plans are stored as shared immutable linked lists, so a transition doesn't
-copy; each node caches its total days and leave count, so comparisons walk the leave dates only on exact ties.
+copy; each node caches its total days and leave count, so a transition is O(1) apart from building the new node.
 
 ## Alternatives considered
 

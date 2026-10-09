@@ -24,6 +24,7 @@ holidays can't change the result.
 ## Consequences
 
 - Determinism is testable: the same inputs with holidays shuffled must give an identical plan (property test).
-- The oracle (ADR 0005) applies the same comparator, so ties are checked too, not just the objective value.
-- The comparator is one shared class used by the planner and the oracle; it gets its own unit tests so a bug in it
-  can't hide in both.
+- The order is written down three times on purpose: `SelectionOrder` (the documented order), the oracle's own
+  `isBetter` (ADR 0005), and implicitly in the DP's "replace on equal totals" rule (ADR 0003). The oracle property
+  compares the DP with brute force on leave dates, not just totals, so a tie bug in either would show; a jqwik
+  property also checks `SelectionOrder` agrees with the oracle's rule.
