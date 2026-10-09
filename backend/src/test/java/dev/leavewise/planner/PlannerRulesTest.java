@@ -332,8 +332,9 @@ class PlannerRulesTest {
   }
 
   @Test
-  void onlyOneNoteNoBreakPossibleBeatsLeavesUnused() {
-    // docs/API.md: "NO_BREAK_POSSIBLE replaces LEAVES_UNUSED (every leave is unused then)".
+  void onlyOneNoteNoBreakPossibleEvenThoughEveryLeaveIsUnused() {
+    // docs/API.md: one note per plan; with no break, NO_BREAK_POSSIBLE is the note although all 3
+    // leaves are spare.
     Plan plan = plan(request(2027, 3, SAT_SUN, BreakStyle.BIG_TRIPS));
 
     assertThat(plan.leavesUnused()).isEqualTo(3);

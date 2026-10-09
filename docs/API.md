@@ -182,14 +182,13 @@ Response `200`:
 | --- | --- | --- |
 | `NO_LEAVE_USED` | `leaveDays` is 0 | `No leave used. These are the long weekends you already get.` |
 | `LEAVES_LEFT_OVER` | More leave days than working days left | `{n} leaves left over: every working day is already a leave day.` |
-| `LEAVES_UNUSED` | Some leaves would not make any break longer | `{n} leaves unused: no break gets longer with them.` |
 | `NO_BREAK_POSSIBLE` | `leaveDays` > 0 but no break of the minimum length can be made | `No break of {m}+ days fits {n} leaves with these holidays and weekly offs.` plus, unless the style is already Long weekends, ` Try a shorter break style.` |
 | `NO_DAYS_LEFT` | Current year and today is 31 December, so no day is left to plan | `No days left to plan in {year}. Pick {next}.` |
 
 At most one note is returned, chosen in this order: `NO_DAYS_LEFT`, `NO_LEAVE_USED`, `NO_BREAK_POSSIBLE`,
-`LEAVES_LEFT_OVER`, `LEAVES_UNUSED`. So `NO_BREAK_POSSIBLE` replaces `LEAVES_UNUSED` (every leave is unused then).
-`LEAVES_LEFT_OVER` is used only when the plan really puts a leave on every working day in the window; if the window
-is so short that even all of it can't reach the minimum break length, the note is `NO_BREAK_POSSIBLE` instead.
+`LEAVES_LEFT_OVER`. When the plan has a break and leaves to spare, every working day in the window is already a leave
+(a spare leave next to a break would otherwise make it longer), so spare leaves are always `LEAVES_LEFT_OVER`. If the
+window is so short that even all of it can't reach the minimum break length, the note is `NO_BREAK_POSSIBLE`.
 
 With no days left (`NO_DAYS_LEFT`), `planningFrom` and `planningTo` are `null`, `breaks` and `freeLongWeekends` are
 empty, `summary` counts are 0 (with `leavesAvailable` and `leavesUnused` equal to `leaveDays`), and every entry in

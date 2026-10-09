@@ -4,7 +4,7 @@ package dev.leavewise.planner;
  * The one situation note a plan carries, if any (docs/API.md, notes). The API layer turns it into
  * words.
  *
- * @param leaves the number the message needs: leaves left over or unused; otherwise 0
+ * @param leaves the number the message needs: leaves left over; otherwise 0
  */
 public record Note(Code code, int leaves) {
 
@@ -13,7 +13,6 @@ public record Note(Code code, int leaves) {
     NO_DAYS_LEFT,
     NO_LEAVE_USED,
     NO_BREAK_POSSIBLE,
-    LEAVES_LEFT_OVER,
-    LEAVES_UNUSED
+    LEAVES_LEFT_OVER
   }
 }

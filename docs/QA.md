@@ -42,8 +42,8 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Break: days off in a row with ≥1 leave and ≥ style length (3, 5, 9) | `PlannerRulesTest#breakNeedsALeaveDay`, `#breakMeetsMinimumLength` (each style) | planned |
 | Best plan: most total days inside breaks within the balance | `PlannerOracleProperties#matchesBruteForce` (1,000+ tries), `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave` | planned |
 | A leave outside a break adds nothing, so none is placed | `PlannerProperties#noLeaveOutsideABreak`, `PlannerRulesTest#unusedLeavesWhenNothingGrows` | planned |
-| Ties: fewer leaves wins | `PlanComparatorTest#fewerLeavesWinsOnEqualDays`, oracle | planned |
-| Ties: then the first earlier leave date wins | `PlanComparatorTest#earlierFirstDifferentDateWins`, oracle | planned |
+| Ties: fewer leaves wins | `SelectionOrderTest#equalDaysFewerLeavesWins`, oracle | planned |
+| Ties: then the first earlier leave date wins | `SelectionOrderTest#equalDaysAndLeavesFirstEarlierPositionWins`, oracle | planned |
 | Same inputs always give the same plan | `PlannerProperties#holidayOrderDoesNotMatter`, `#repeatedRunsAreIdentical` | planned |
 | Year edges: leaves stay in the year; breaks count edge weekly offs and known holidays | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#noLeaveOutsideYear`, `#unknownAdjacentYearUsesWeeklyOffsOnly` | planned |
 | Current year: only days after today are planned | `PlanningWindowTest#currentYearStartsTomorrow`, `#todayIsNotCounted`, `ApiOptionsTest#defaultYearFromOctober` | planned |
