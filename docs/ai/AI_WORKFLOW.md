@@ -50,7 +50,7 @@ links each change to the Claude Code session that made it.
 | gate-runner | Haiku | not run yet | |
 | test-designer | Sonnet, high | not run yet | |
 | edge-case-hunter | Opus, high | not run yet | |
-| code-reviewer | Sonnet, high | not run yet | |
+| code-reviewer | Sonnet, high | Phase 1 docs vs PRD (run as a Sonnet general-purpose agent with the code-reviewer brief, because project agents load only in a new session): 10 findings, 0 high, 4 medium, 6 low. Verdict: changes needed. | All 10 fixed in `docs/API.md`, ADR 0003, ADR 0005 and `docs/QA.md`; finding 2 logged as AI failure 4. |
 | security-reviewer | Sonnet, medium | not run yet | |
 | ui-reviewer | Sonnet, medium | not run yet | |
 

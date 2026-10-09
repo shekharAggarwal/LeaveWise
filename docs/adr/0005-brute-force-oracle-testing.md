@@ -14,7 +14,8 @@ solver that tries every combination." Example-based tests alone can't show that 
   minimum length, sum their lengths), and keeps the best by the ADR 0004 order. It shares the day-kind model with
   the planner but none of its algorithm.
 - A jqwik property generates at least 1,000 random small calendars (up to about 21 days, random weekly offs and
-  holidays, budgets 0 to 8, all three break styles, random year-edge padding) and asserts the planner returns
+  holidays, budgets 0 to 8 including budgets above the number of working days, all three break styles, random
+year-edge padding, and horizons with no leading edge as in current-year planning) and asserts the planner returns
   exactly the oracle's plan: same leave dates, same breaks, same total.
 - Further properties: holiday order doesn't change the plan; no leave is placed outside a break; leaves used never
   exceed the budget; a full year with 60 leaves plans in under 1 second.

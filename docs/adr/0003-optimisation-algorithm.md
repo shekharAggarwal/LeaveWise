@@ -32,13 +32,20 @@ best(p, b) = better of
   interval [p, j] + best(j + 2, b - cost(p, j))         for each candidate [p, j] with cost <= b
 ```
 
+A candidate may start at `p` only when `p` is the horizon start or day `p-1` is a working day. This is a property of
+the calendar, not of the DP path, so candidates are precomputed per start: after "skip day p" where `p` is a day
+off, no candidate starts at `p+1`, which is right, because a break starting at `p+1` would not be maximal (it would
+join day `p`). Every working day the DP skips stays untaken, so a start's "day `p-1` is working" really means an
+untaken working day.
+
 "Better" is the total order of ADR 0004 (days in breaks, then fewer leaves, then earliest leave dates). That order
 is compatible with the DP: for a fixed first interval, the best completion is the best suffix plan, because sums
 add and a shared prefix doesn't change a lexicographic comparison.
 
-Size: a full year is about 380 positions, budgets 0 to 60, and at most about 90 candidate ends per start before the
-cost exceeds 60, so about 2 million transitions. Plans are stored as shared immutable linked lists, so a transition
-doesn't copy.
+Size: a full year is about 380 positions and budgets 0 to 60. A candidate end is a day just before a working day (or
+the horizon end), and each later end adds at least one leave, so a start has at most 61 candidate ends within the
+budget: under 1.5 million transitions. Plans are stored as shared immutable linked lists, so a transition doesn't
+copy; each node caches its total days and leave count, so comparisons walk the leave dates only on exact ties.
 
 ## Alternatives considered
 

@@ -29,6 +29,13 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - Error and note copy the PRD doesn't give (year, break style, paste reasons, 413, 429, notes) is this project's
   wording, listed in docs/API.md.
 - Weekly offs may be empty (0 to 6 days); the PRD only forbids all seven.
+- Only one note per plan, in a fixed order (docs/API.md). PRD tension: "more leave days than working days left" asks
+  for a plan using every working day, but if the window is shorter than the minimum break even that is no break
+  (PRD Break rule), so the note is `NO_BREAK_POSSIBLE`. Today 31 Dec in the current year gives `NO_DAYS_LEFT`.
+- At most 100 holidays per plan request (bundled list plus up to 50 pasted lines plus manual adds); invented limit.
+- Nice-to-have results (other good breaks, share link, free long weekends beyond the 0-leave case) are deferred
+  until every Must is polished; their planned API shape is in docs/API.md.
+- `.ics` UIDs are stable per break; `DTSTAMP` is the download time, as RFC 5545 requires.
 - The "no break possible" note omits the shorter-style suggestion when the style is already Long weekends.
 - Pasting more than 50 lines: lines 51+ are reported as not loaded; lines 1 to 50 still load.
 - "Today" is in Asia/Kolkata on the server; the browser takes it from `GET /api/options`.
@@ -71,7 +78,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] .claude/settings.json: format hook, PRD/.env edit block, frontend install at session start, PROGRESS re-inject after compaction, subagent limits, permissions allowlist
 - [x] scripts/quality-gate.sh
 - [x] docs/ai/AI_WORKFLOW.md, docs/ai/AI_FAILURE_LOG.md, docs/ai/REVIEW_LOG.md (empty), docs/HUMAN_TODO.md
-- [ ] STOP 1: context files, subagents, ADRs, recommended answers to PRD open questions, unclear PRD points
+- [x] STOP 1: context files, subagents, ADRs, recommended answers to PRD open questions, unclear PRD points
 
 ## Phase 2: Planner core (ends at STOP 2)
 - [ ] test-designer writes failing tests from the PRD planning rules

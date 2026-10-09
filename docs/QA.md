@@ -48,6 +48,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Year edges: leaves stay in the year; breaks count edge weekly offs and known holidays | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#noLeaveOutsideYear`, `#unknownAdjacentYearUsesWeeklyOffsOnly` | planned |
 | Current year: only days after today are planned | `PlanningWindowTest#currentYearStartsTomorrow`, `#todayIsNotCounted`, `ApiOptionsTest#defaultYearFromOctober` | planned |
 | Free long weekends: 3+ days off needing no leave, shown, not counted | `FreeLongWeekendTest#listedButNotCounted`, `#notListedWhenPartOfABreak` | planned |
+| A break can't start right after a day off (maximal runs only) | `CandidateBreaksTest#noStartAfterADayOff` | planned |
 | PRD example: Thursday holiday + Friday leave = 4-day break Thu to Sun | `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave` | planned |
 
 ## Coverage map: edge cases (PRD list)
@@ -61,8 +62,9 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | 0 leave days | `PlannerRulesTest#zeroLeavesGivesNoBreaksAndFreeWeekends`, `PlanApiTest#zeroLeavesNote` | planned |
 | More leave days than working days | `PlannerRulesTest#moreLeavesThanWorkingDaysUsesEveryWorkingDay`, `PlanApiTest#leftOverNote` | planned |
 | Only Sunday as a weekly off | `PlannerRulesTest#sundayOnlyWeek`, oracle (random weekly offs) | planned |
+| No weekly off at all (PRD allows any days) | `PlannerRulesTest#noWeeklyOffs`, `PlanApiTest#emptyWeeklyOffsAccepted` | planned |
 | Every holiday unticked | `PlannerRulesTest#noHolidays`, `PlannerForm.test#untickAllHolidays` | planned |
-| Current year, planning from today | `PlanningWindowTest#currentYearStartsTomorrow`, `#planOnThirtyFirstDecember` | planned |
+| Current year, planning from today | `PlanningWindowTest#currentYearStartsTomorrow`, `#planOnThirtyFirstDecember` (empty window, `NO_DAYS_LEFT`), `#windowShorterThanMinimumBreak` | planned |
 | A pasted list with bad lines | `HolidayPasteParserTest#reportsLineAndReasonAndLoadsTheRest`, `#over50Lines`, `HolidayPaste.test` | planned |
 
 ## Coverage map: validation and errors (PRD table)
@@ -75,7 +77,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Pasted line not a valid date in the year | Line number and reason; other lines load | `HolidayPasteParserTest`, `HolidayParseApiTest` | planned |
 | Same holiday date added twice | Kept once, both names shown | `HolidayMergeTest`, `BreakList.test#showsBothNames` | planned |
 | 0 leave days | Free long weekends only, note that no leave is used | `PlanApiTest#zeroLeavesNote`, `Results.test#zeroLeaves` | planned |
-| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `PlanApiTest#noBreakPossibleNote` | planned |
+| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `PlanApiTest#noBreakPossibleNote`, `#onlyOneNoteInPrecedenceOrder` | planned |
 
 ## Coverage map: results (Must items)
 
@@ -85,6 +87,14 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Break list: dates, days off, leave dates, holidays, days off per leave | `PlanApiTest#breakFields`, `BreakList.test` | planned |
 | Year calendar: 12 months, colour **and** label, tap a day to see what it is | `YearCalendar.test#labelsEveryKind`, `#tapShowsDayDetails`, axe | planned |
 | Calendar file: one all-day event per break, notes list leave dates | `IcsWriterTest`, `IcsApiTest`, `DownloadButton.test` | planned |
+
+## Coverage map: results (Nice to have, deferred until every Must is polished)
+
+| Part | Tests | Status |
+| --- | --- | --- |
+| Free long weekends (beyond the 0-leave case) | `FreeLongWeekendTest` (planner), `FreeLongWeekends.test` (UI) | deferred |
+| Other good breaks: top 10 not in the plan, by days off per leave | `OtherBreaksTest#topTenByDaysOffPerLeave` | deferred |
+| Share link: inputs kept in the page link | `ShareLink.test#roundTripsInputs` | deferred |
 
 ## Coverage map: quality, privacy and security
 
@@ -97,6 +107,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `SecurityHeadersTest` | planned |
 | No secrets in the repo | gitleaks-style scan in `scripts/quality-gate.sh` and CI | planned |
 | Holiday file per year with source noted | `BundledHolidayFilesTest#everyFileHasOfficialSource`, `#noTestDataInMain` | planned |
+| The app reminds users to check their company's official list | `HolidaysApiTest#reminderPresent`, `HolidayList.test#showsSourceAndReminder` | planned |
 | One Spring Boot app serves the page and API | Docker build in CI, `SpaForwardingTest` | planned |
 
 ## Acceptance items (PRD, "How we will know it works")

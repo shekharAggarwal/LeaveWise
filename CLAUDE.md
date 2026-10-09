@@ -79,3 +79,4 @@ scripts/  quality-gate.sh and delivery scripts
 - Before pinning a dependency, check its `engines` and peer ranges against the toolchain (Node 22, Java 21, the
   pinned Vite/TypeScript). (AI failure 1)
 - Run the command that proves a fact (versions, licences, flags, test results) before writing it in a doc. (AI failure 2)
+- Check example dates in docs with a script (weekday, rule) before writing them. (AI failure 4)

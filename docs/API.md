@@ -10,7 +10,7 @@ for fast feedback, and the server checks them again; the server is the authority
 | Topic | Rule |
 | --- | --- |
 | Dates | ISO `YYYY-MM-DD` (calendar dates, no time zone). The server's "today" is in Asia/Kolkata. |
-| Weekly offs | `MONDAY` … `SUNDAY` (Java `DayOfWeek` names). Order and duplicates don't matter. |
+| Weekly offs | `MONDAY` … `SUNDAY` (Java `DayOfWeek` names). Order doesn't matter; a repeated day is collapsed into one. |
 | Break styles | `LONG_WEEKENDS` (3+ days), `SHORT_TRIPS` (5+ days), `BIG_TRIPS` (9+ days). |
 | Request size | Bodies over 32 KB get `413`. |
 | Rate limit | 60 requests per minute per client IP on `/api/**`, with a burst of 20; over it gets `429` and `Retry-After`. |
@@ -59,11 +59,12 @@ The bundled India public holiday list for one year. `year` must be one of `optio
   "reminder": "Check this against your company's official holiday list.",
   "holidays": [
     {"date": "2027-03-04", "names": ["Example Holiday A"]},
-    {"date": "2027-08-19", "names": ["Example Holiday B", "Example Holiday C"]}
+    {"date": "2027-08-27", "names": ["Example Holiday B", "Example Holiday C"]}
   ]
 }
 ```
 
+- A `year` outside `options.years`, or missing, gets `400` with `Pick {current} or {next}.`
 - When no bundled file exists for the year: `200` with `"available": false`, `"source": null` and `"holidays": []`,
   so the user can still plan with their own holidays.
 - Two holidays on the same date are returned once with both names (PRD, Validation and errors).
@@ -79,7 +80,8 @@ Request:
 {"year": 2027, "text": "2027-03-04 Example Holiday A\n2027-02-30 Bad date\n\n2026-12-25 Wrong year\nnot a line"}
 ```
 
-`text` is at most 8,000 characters. Blank lines are skipped but still count for line numbers.
+`text` is at most 8,000 characters. Blank lines are skipped but still count for line numbers. A bad `year`, a longer
+`text` or an unreadable body get the errors in the table at the end.
 
 Response `200`:
 
@@ -100,7 +102,7 @@ Response `200`:
 | Not a real date | `{text} is not a real date.` |
 | Date outside the chosen year | `{date} is not in {year}.` |
 | No name after the date | `Add a name after the date.` |
-| Name over 80 characters | `Keep the name under 80 characters.` |
+| Name over 80 characters | `Keep the name to 80 characters or fewer.` |
 | Line 51 or later | `Only 50 lines can be pasted. This line was not loaded.` |
 
 ## `POST /api/plan`
@@ -115,7 +117,7 @@ Request (every field has the PRD default in the form; the API requires them all 
   "breakStyle": "LONG_WEEKENDS",
   "holidays": [
     {"date": "2027-03-04", "name": "Example Holiday A"},
-    {"date": "2027-08-19", "name": "Example Holiday B"}
+    {"date": "2027-08-27", "name": "Example Holiday B"}
   ]
 }
 ```
@@ -124,7 +126,7 @@ Request (every field has the PRD default in the form; the API requires them all 
 | --- | --- |
 | `year` | One of `options.years`. For the current year, only days after today are planned. |
 | `leaveDays` | Whole number from 0 to 60. `12.5`, `"12"`, `-1` and `61` are rejected. |
-| `weeklyOffs` | 0 to 6 distinct days; at least one working day must remain in the week. |
+| `weeklyOffs` | Any days; repeats collapse. Empty is allowed (no weekly off). All seven distinct days is rejected with the PRD message: at least one working day must remain. |
 | `breakStyle` | One of the three ids. |
 | `holidays` | At most 100 items. `date` in the chosen year, `name` 1 to 80 characters. Duplicate dates are merged, keeping every name. Unticked holidays are simply not sent. |
 
@@ -155,8 +157,8 @@ Response `200`:
     }
   ],
   "freeLongWeekends": [
-    {"start": "2027-08-19", "end": "2027-08-22", "days": 4,
-     "holidays": [{"date": "2027-08-19", "names": ["Example Holiday B"]}]}
+    {"start": "2027-08-27", "end": "2027-08-29", "days": 3,
+     "holidays": [{"date": "2027-08-27", "names": ["Example Holiday B"]}]}
   ],
   "notes": [],
   "days": [
@@ -182,6 +184,16 @@ Response `200`:
 | `LEAVES_LEFT_OVER` | More leave days than working days left | `{n} leaves left over: every working day is already a leave day.` |
 | `LEAVES_UNUSED` | Some leaves would not make any break longer | `{n} leaves unused: no break gets longer with them.` |
 | `NO_BREAK_POSSIBLE` | `leaveDays` > 0 but no break of the minimum length can be made | `No break of {m}+ days fits {n} leaves with these holidays and weekly offs.` plus, unless the style is already Long weekends, ` Try a shorter break style.` |
+| `NO_DAYS_LEFT` | Current year and today is 31 December, so no day is left to plan | `No days left to plan in {year}. Pick {next}.` |
+
+At most one note is returned, chosen in this order: `NO_DAYS_LEFT`, `NO_LEAVE_USED`, `NO_BREAK_POSSIBLE`,
+`LEAVES_LEFT_OVER`, `LEAVES_UNUSED`. So `NO_BREAK_POSSIBLE` replaces `LEAVES_UNUSED` (every leave is unused then).
+`LEAVES_LEFT_OVER` is used only when the plan really puts a leave on every working day in the window; if the window
+is so short that even all of it can't reach the minimum break length, the note is `NO_BREAK_POSSIBLE` instead.
+
+With no days left (`NO_DAYS_LEFT`), `planningFrom` and `planningTo` are `null`, `breaks` and `freeLongWeekends` are
+empty, `summary` counts are 0 (with `leavesAvailable` and `leavesUnused` equal to `leaveDays`), and every entry in
+`days` has `planned: false`.
 
 ## `POST /api/plan/ics`
 
@@ -191,9 +203,23 @@ Same request body as `/api/plan`. Returns `200` with `Content-Type: text/calenda
 - One `VEVENT` per break: `DTSTART;VALUE=DATE` is the first day, `DTEND;VALUE=DATE` the day **after** the last day
   (RFC 5545 all-day events), `SUMMARY` like `Break: 4 days off (1 leave)`, `DESCRIPTION` listing the leave dates
   (`Leave: Fri, 5 Mar 2027`) and holidays inside.
-- `UID` is derived from the break dates, so downloading the same plan twice gives the same file.
+- The calendar has `VERSION:2.0`, `PRODID:-//LeaveWise//Leave plan//EN` and `CALSCALE:GREGORIAN`.
+- `UID` is derived from the break dates (`<start>-<end>@leavewise`), so importing the same plan again updates the
+  events instead of duplicating them. `DTSTAMP` (required by RFC 5545) is the download time in UTC, so two downloads
+  differ only in that line.
 - CRLF line endings, lines folded at 75 octets, text escaped per RFC 5545 section 3.3.11.
 - With no breaks, the file is still valid and has no events.
+
+## Nice to have (deferred)
+
+The PRD's Nice-to-have results are deferred until every Must is complete and polished (the owner's brief). Planned
+shape, so they can be added without breaking the contract:
+
+| PRD part | Planned addition |
+| --- | --- |
+| Free long weekends | Already in `/api/plan` (`freeLongWeekends`), because the PRD's 0-leave case needs it; the UI shows them only in that case until the Nice-to-haves are built. |
+| Other good breaks | `otherBreaks` in the `/api/plan` response: up to 10 candidate breaks not in the plan, ranked by days off per leave (ties: earlier start). |
+| Share link | No API change: the page keeps the inputs in its URL query (`?y=2027&l=12&w=SA,SU&s=LW&h=...`) and plans on load. |
 
 ## `GET /actuator/health`
 
@@ -219,8 +245,10 @@ Every error is `application/problem+json`. `detail` is the message to show; `err
 | All seven days are weekly offs | 400 | `invalid-input` | `Keep at least one working day in the week.` (PRD) |
 | `year` not the current or next year | 400 | `invalid-input` | `Pick {current} or {next}.` |
 | `breakStyle` missing or unknown | 400 | `invalid-input` | `Pick a break style: Long weekends, Short trips or Big trips.` |
-| A holiday date outside the year, or a bad name | 400 | `invalid-input` | `Holiday {date} is not in {year}.` / `Keep holiday names between 1 and 80 characters.` |
+| A holiday date outside the year, or a bad name | 400 | `invalid-input` | `Holiday {date} is not in {year}.` / `Keep holiday names to 80 characters or fewer.` |
 | More than 100 holidays | 400 | `invalid-input` | `Use at most 100 holidays.` |
+| A required field missing or `null`, or a weekly off that isn't a day name | 400 | `invalid-input` | `Fill in {field}.` / `Weekly offs must be day names, like SATURDAY.` |
+| Pasted `text` over 8,000 characters | 400 | `invalid-input` | `Paste at most 50 lines (8,000 characters).` |
 | Body is not valid JSON | 400 | `unreadable` | `The request could not be read. Reload the page and try again.` |
 | Body over 32 KB | 413 | `too-large` | `The request is too large. Paste at most 50 holiday lines.` |
 | Rate limit reached | 429 | `rate-limited` | `Too many requests. Wait a minute and try again.` |
