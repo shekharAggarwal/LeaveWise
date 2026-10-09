@@ -3,18 +3,19 @@
 Source of the steps: [kickoff-prompt.md](kickoff-prompt.md). Tick a step only when it is done and green.
 Every session starts by reading `CLAUDE.md` and this file, then continues from the first unticked step.
 
-## Blocker (2026-10-09, cloud session)
+## Notes
 
-`docs/PRD.md` does not exist. The remote repository `shekharAggarwal/LeaveWise` had no branches and no files
-when this session started, and no other repository the account can reach holds the PRD.
-The brief says to read the PRD before anything else and never to invent requirements, so work stops after the
-first actions until the owner commits `docs/PRD.md`.
+- 2026-10-09: the repository started empty, with no `docs/PRD.md`. The owner then shared the PRD as a Claude Docs page,
+  which was copied word for word into `docs/PRD.md` (revision 13). The page's embedded build-plan diagram was
+  transcribed as a table, because the Markdown export drops embedded diagrams.
+- Astryx packages pinned at 0.6.6 (the npm `latest` tag on 2026-10-09). github.com is blocked from the cloud VM,
+  but raw.githubusercontent.com works, so the official `apps/example-vite` files were read from there.
 
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
 - [x] Create docs/ai/PROGRESS.md
 - [x] Commit and push
-- [ ] **Blocked:** read docs/PRD.md in full (file missing)
+- [x] Read docs/PRD.md in full (copied from the owner's Claude Docs page)
 
 ## Phase 1: Context engineering and scaffolding (ends at STOP 1)
 - [ ] Empty backend project (Java 21, Spring Boot, Maven) that builds
