@@ -120,11 +120,11 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] Rate limit per IP, request size limit, security headers, inputs never logged
 - [x] Health endpoint
 - [x] code-reviewer on the API diff, fixes
-- [ ] UI journey screens (Astryx workflow, ui-reviewer after each)
-- [ ] Results: summary, break list, 12-month calendar, .ics download
-- [ ] Main flow test and axe check
-- [ ] code-reviewer on the UI diff, fixes
-- [ ] LAPTOP: check screens in a real browser
+- [x] UI journey screens (Astryx workflow, ui-reviewer after each)
+- [x] Results: summary, break list, 12-month calendar, .ics download
+- [x] Main flow test and axe check
+- [x] code-reviewer on the UI diff, fixes
+- [ ] LAPTOP: check screens in a real browser (cloud Chromium checks done at 360 and 1280 px, light and dark; a real phone and contrast check remain)
 
 ## Phase 4: Hardening and QA
 - [ ] Full security-reviewer pass, fixes

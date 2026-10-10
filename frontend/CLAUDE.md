@@ -11,6 +11,9 @@ Loaded only when working on files in `frontend/`. Root rules in `../CLAUDE.md` s
 - Commands (run here): `npm run dev`, `npm test`, `npm run lint`, `npm run build`, `npm run astryx -- doctor`.
 - Tests: Vitest + React Testing Library; every screen gets an axe check via `src/test/axe.ts`.
 - Dates shown to users use Indian format (`Fri, 2 Oct`), via one shared formatter.
+- Async UI work updates state functionally and ignores responses for inputs that have changed; test each async path
+  with a deferred response. (AI failure 11)
+- Before a UI review, load every screen at 360 px in Chromium and assert no horizontal overflow. (AI failure 13)
 - The block below is managed by `astryx init`. Never edit inside it.
 
 <!-- ASTRYX:START -->

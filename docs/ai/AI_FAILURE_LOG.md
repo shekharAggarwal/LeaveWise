@@ -131,3 +131,42 @@ Template:
 - Root cause: (a) an outdated Spring idiom; (b) privacy relied on the default log level instead of being enforced.
 - Rule added: none: `PrivacyTest` guards (b).
 
+## 11. UI state races and a lost keyboard Tab stop (2026-10-10)
+- What the AI got wrong (commit `b02204f`): the paste handler built new rows from the rows captured at click time,
+  so a paste finishing after a year switch wrote the old year's rows over the new year; the calendar remembered a
+  focused date across plans, so after re-planning for another year no day had `tabindex="0"`; Enter could submit
+  twice and planning was allowed before the holiday list had loaded; non-API errors showed raw text such as
+  "TypeError: Failed to fetch"; the `.ics` object URL was revoked synchronously.
+- How it was caught: code-reviewer (Sonnet) on the UI diff, 3 high and 5 medium findings.
+- Fix: commit `3ca0132`: functional state updates, the holiday editor keyed by year with late responses dropped,
+  a Tab stop that falls back to the first planned day, a re-entrancy guard and a request sequence number, one
+  connection message for every non-API failure, a delayed revoke. Regression tests in
+  `src/ReviewFindings.test.tsx`; 11 failed on the old code.
+- Root cause: async handlers written as if the inputs couldn't change while a request was in flight.
+- Rule added: frontend/CLAUDE.md: "Async UI work updates state functionally and ignores responses for inputs that
+  have changed; test each async path with a deferred response."
+
+## 12. Focus moved to an aria-hidden element, and unreadable past days (2026-10-10)
+- What the AI got wrong (commit `b02204f`): after planning, focus went to an empty `aria-hidden` span, so screen
+  readers announced nothing; past days used the disabled text colour while staying focusable; the free long weekend
+  style was missing from the legend; "Holidays" was styled text, not a heading.
+- How it was caught: ui-reviewer (Sonnet, with the `astryx-ui` skill preloaded), reading the code and the
+  Playwright screenshots.
+- Fix: commit `3ca0132`: the results region takes focus (`tabIndex={-1}`, labelled by its heading), past days use
+  the secondary text colour, the legend lists all five marks, `Heading level={2}` for Holidays. Regression test
+  `ReviewFindings.test.tsx#moves focus to the results region after planning`.
+- Root cause: focus management written for the visual effect, not for what assistive technology announces.
+- Rule added: none beyond the test.
+
+## 13. The page overflowed on a 360 px phone (2026-10-10)
+- What the AI got wrong (commit `b02204f`, before review): Astryx list rows don't wrap, so a break description with
+  holiday names (about 495 px) and the seven weekly-off buttons (358 px) forced the whole page wider than a 360 px
+  screen, cutting off both edges.
+- How it was caught: my own check in the VM's Chromium (Playwright, 360 px, `scrollWidth > innerWidth`), then a
+  script that measured each element's min-content width to find the two culprits. jsdom tests can't see layout.
+- Fix: in `b02204f` itself: long list text goes through `Text textWrap="wrap"`, and the weekday group wraps via one
+  StyleX `xstyle`. Re-checked at 360 and 1280 px, light and dark: no overflow, no console errors.
+- Root cause: assumed Astryx rows wrap like plain text; layout was only tested in jsdom.
+- Rule added: frontend/CLAUDE.md: "Before a UI review, load every screen at 360 px in Chromium and assert no
+  horizontal overflow."
+

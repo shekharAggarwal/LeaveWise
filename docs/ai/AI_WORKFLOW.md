@@ -53,8 +53,9 @@ links each change to the Claude Code session that made it.
 | edge-case-hunter | Opus, high | Phase 2: no planner defect found (3,000-try year-edge fuzz against the date oracle, code reading). Killed 2 PIT survivors with 6 new tests; showed 2 survivors equivalent and 2 a safety bound. Raised one interpretation for the owner (year edge on 30/31 Dec). | `BreakOptimizerContractTest`, `LeaveBreakTest` added; PIT 178 → 180 of 184. |
 | code-reviewer | Sonnet, high | Phase 1 docs vs PRD (run as a Sonnet general-purpose agent with the code-reviewer brief, because project agents load only in a new session): 10 findings, 0 high, 4 medium, 6 low. Verdict: changes needed. | All 10 fixed in `docs/API.md`, ADR 0003, ADR 0005 and `docs/QA.md`; finding 2 logged as AI failure 4. |
 | code-reviewer | Sonnet, high | Phase 3 API diff: 10 findings, 2 high (filter bypass via `/%61pi` and `/api;x`, `.ics` line injection via lone CR), 4 medium, 4 low; ran its own copy of the app with curl to confirm 4 of them. Verdict: changes needed. | All fixed in `07c1a2f` with regression tests that fail on the old code (AI failures 7 to 9); `instance` field and `/api/%zz` container 400 documented as known. |
+| code-reviewer | Sonnet, high | Phase 3 UI diff: 10 findings, 3 high (paste race across years, lost Tab stop, double submit and planning before holidays load), 5 medium, 2 low, including tests that couldn't fail as written. | All high and medium fixed in `3ca0132` with 11 regression tests and 13 unit tests (AI failure 11); date tests now run in America/Los_Angeles. |
 | security-reviewer | Sonnet, medium | not run yet | |
-| ui-reviewer | Sonnet, medium | not run yet | |
+| ui-reviewer | Sonnet, medium | Phase 3 whole page, code plus Playwright screenshots: 10 findings, 1 high (focus to an aria-hidden span), 5 medium (raw error text, stale results, disabled-colour past days, legend gap, headings), 4 low. | All high and medium fixed in `3ca0132` (AI failure 12); tokens and grid offsets fixed; Banner for the weekly-off error kept (no `status` prop on ToggleButtonGroup). |
 
 ## Lifecycle
 
