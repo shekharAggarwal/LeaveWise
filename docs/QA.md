@@ -110,7 +110,8 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Works from 360 px wide | Playwright Chromium screenshots at 360 and 1280 px, light and dark, with a horizontal-overflow check (cloud VM, Phase 3); real-device check is a LAPTOP/owner step | checked in cloud Chromium |
 | Contrast, keyboard, colour never the only signal | axe in `App.test` (form and results; contrast rule needs a real browser), calendar days carry a text code and a spoken label, roving arrow-key focus | passing (contrast: LAPTOP check) |
 | No login, database, tracking cookies; inputs not logged | `PrivacyTest#noResponseSetsACookie`, `#requestInputsNeverAppearInTheLog` (root DEBUG on) | passing |
-| Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `RateLimitFilterTest`, `PathBypassTest` (real server), `SecurityHeadersTest` | passing |
+| Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `RateLimitFilterTest`, `PathBypassTest` (real server), `SecurityHeadersTest`, `SecurityReviewApiTest` (duplicate JSON keys) | passing |
+| The page itself obeys the CSP (`style-src 'self'`, `script-src 'self'`) | `frontend/scripts/check-dist-csp.mjs` inside `npm run build` (no inline `<style>`, `style=` or script; layer and slide-rule stylesheets linked); Playwright Chromium against the jar: 0 CSP violations (Phase 4) | passing |
 | No secrets in the repo | secretlint in `scripts/quality-gate.sh` | passing |
 | Holiday file per year with source noted | `BundledHolidayFilesTest`, `HolidayRepositoryTest` (13), `ReviewFindingsHolidaysTest#retrievedOnMustBeAnIsoDate` | passing (real files: LAPTOP) |
 | The app reminds users to check their company's official list | `HolidaysApiTest#reminderPresent`, `App.test#shows the holiday source and the reminder` | passing |

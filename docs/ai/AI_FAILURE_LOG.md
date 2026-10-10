@@ -170,3 +170,21 @@ Template:
 - Rule added: frontend/CLAUDE.md: "Before a UI review, load every screen at 360 px in Chromium and assert no
   horizontal overflow."
 
+
+## 14. The production page broke its own Content Security Policy (2026-10-10)
+- What the AI got wrong: the API sends `style-src 'self'` (commit `260f86d`), but the built page it served had an
+  inline `<style>` with the Astryx cascade-layer order (added by the Astryx Vite plugin), and Astryx's popover layer
+  injected another inline `<style>` with `@position-try` rules at runtime. The browser blocked both, so the layer
+  order and the popover placement rules were lost. Every jsdom test passed, since jsdom enforces no CSP.
+- How it was caught: my own Playwright check of the jar serving `frontend/dist`, which logged two
+  `securitypolicyviolation` events (`style-src-elem inline`). The security-reviewer subagent flagged the inline
+  layer `<style>` separately from reading `dist/index.html`.
+- Fix: a Vite plugin in `frontend/vite.config.ts` moves the layer order to `layers.css` (first stylesheet) and emits
+  Astryx's own slide rules as `astryx-layer-slide-rules.css`, linked with the id Astryx checks before injecting.
+  The CSP stays strict. Re-checked in Chromium: no `<style>` elements, no CSP violations, the date picker popover
+  places correctly. Regression check `frontend/scripts/check-dist-csp.mjs` runs inside `npm run build` and failed
+  on a copy of the old `index.html` with five findings.
+- Root cause: the CSP was written and tested on the API alone; the built page was never loaded with the real
+  headers until Phase 4.
+- Rule added: frontend/CLAUDE.md: "The built page must load under the production CSP with no violations: keep
+  `scripts/check-dist-csp.mjs` in the build, and load the jar in Chromium after adding a component that injects styles."

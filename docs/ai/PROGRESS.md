@@ -61,6 +61,24 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
   days in a break that crosses 1 January. The PRD's Year edges rule allows it; ADR 0006 limits "today isn't counted"
   to the current year.
 
+## Phase 4 results (2026-10-10)
+
+- security-reviewer: no critical or high findings in the app. Fixed: the built page broke its own CSP (AI failure 14;
+  now 0 violations in Chromium and a build-time check), duplicate JSON keys are rejected (`SecurityReviewApiTest`),
+  `npm ci` runs no dependency lifecycle scripts (`frontend/.npmrc`; the only two were Astryx "run init" nudges).
+- Dependencies: `npm audit --omit=dev`: 0 vulnerabilities. `npm audit` with dev dependencies: 5 high, all one
+  advisory (GHSA-vfj7-8cjw-p6xm, `braces` stack exhaustion, no fix released) via `micromatch` and `fast-glob` in
+  `@astryxdesign/build` and `@stylexjs/eslint-plugin`. Build and lint tooling only, fed only the repo's own files,
+  never shipped: explained, not fixed. Backend: Spring Boot 4.1.1 is the newest 4.1 patch (Maven Central metadata,
+  2026-10-10); a CVE scan of the 55 runtime jars could not run here (api.osv.dev is blocked by the VM's network
+  policy), so it goes into CI in Phase 5.
+- For Phase 5 `docs/DEPLOYMENT.md`: the rate limit keys on the client IP that Tomcat takes from `X-Forwarded-For`
+  when the peer is a private or loopback address. Safe behind the host's proxy with the app port never exposed;
+  if the host's proxy has a public address, set `server.tomcat.remoteip.internal-proxies` to its range.
+- For STOP 3 (accepted, low): container-level 400s for malformed URLs (`/%`, `/api/x%00`) are Tomcat's static HTML
+  page without the security headers; problem `instance` echoes the request path to the same caller (JSON only, never
+  logged); the rate-limit map sweep can lag briefly under a spray from many IPv6 /64s.
+
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
 - [x] Create docs/ai/PROGRESS.md
@@ -127,9 +145,9 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [ ] LAPTOP: check screens in a real browser (cloud Chromium checks done at 360 and 1280 px, light and dark; a real phone and contrast check remain)
 
 ## Phase 4: Hardening and QA
-- [ ] Full security-reviewer pass, fixes
+- [x] Full security-reviewer pass, fixes
 - [ ] Full ui-reviewer pass across every screen, fixes
-- [ ] No high-severity dependency issues (or each explained)
+- [x] No high-severity dependency issues (or each explained)
 - [ ] edge-case-hunter across the whole app
 - [ ] Every PRD acceptance item and edge case has a passing test; docs/QA.md map updated
 - [ ] Performance and accessibility checks, fixes

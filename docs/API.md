@@ -256,7 +256,7 @@ Every error is `application/problem+json`. `detail` is the message to show; `err
 | More than 100 holidays | 400 | `invalid-input` | `Use at most 100 holidays.` |
 | A required field missing or `null`, or a weekly off that isn't a day name | 400 | `invalid-input` | `Fill in {field}.` / `Weekly offs must be day names, like SATURDAY.` |
 | Pasted `text` over 8,000 characters, or not text | 400 | `invalid-input` | `Paste at most 50 lines (8,000 characters).` / `Paste the holiday list as text.` |
-| Body is not valid JSON | 400 | `unreadable` | `The request could not be read. Reload the page and try again.` |
+| Body is not valid JSON, or repeats a key | 400 | `unreadable` | `The request could not be read. Reload the page and try again.` |
 | Body over 32 KB | 413 | `too-large` | `The request is too large. Paste at most 50 holiday lines.` |
 | Rate limit reached | 429 | `rate-limited` | `Too many requests. Wait a minute and try again.` |
 | Unknown path under `/api` | 404 | `not-found` | `There is nothing here.` |
