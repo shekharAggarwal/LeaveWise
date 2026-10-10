@@ -1,0 +1,17 @@
+# Render Blueprint: one Docker web service serves the page and the API (ADR 0001, docs/DEPLOYMENT.md).
+# Nothing is stored and there are no secrets, so there are no databases and no secret env vars.
+# Field names checked against Render's own Blueprint skill (render-oss/skills, 2026-10-10); render.com
+# itself is blocked from the build VM, so plan details are confirmed in the Dashboard (docs/HUMAN_TODO.md).
+services:
+  - type: web
+    name: leavewise
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    # Deploy a commit on main only after its GitHub checks (CI) pass.
+    autoDeployTrigger: checksPass
+    # Without a region, Render uses its default region. The region can't be
+    # changed after the service is created; docs/HUMAN_TODO.md says how to choose one nearer India first.

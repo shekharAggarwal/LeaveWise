@@ -71,7 +71,11 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
   `@astryxdesign/build` and `@stylexjs/eslint-plugin`. Build and lint tooling only, fed only the repo's own files,
   never shipped: explained, not fixed. Backend: Spring Boot 4.1.1 is the newest 4.1 patch (Maven Central metadata,
   2026-10-10); a CVE scan of the 55 runtime jars could not run here (api.osv.dev is blocked by the VM's network
-  policy), so it goes into CI in Phase 5.
+  policy), so it went into CI in Phase 5.
+- Correction (Phase 5, AI failure 18): the dependency step above was ticked before the backend was scanned. The
+  first CI run's osv-scanner job found Tomcat 11.0.24 (3 critical) and Jackson 3.1.5 (5 high, 2 medium) in the
+  backend. Fixed by overriding `tomcat.version` to 11.0.26 and `jackson-bom.version` to 3.1.7 in `pom.xml`
+  (312 backend tests pass); the step stays ticked only once the CI scan is green.
 - For Phase 5 `docs/DEPLOYMENT.md`: the rate limit keys on the client IP that Tomcat takes from `X-Forwarded-For`
   when the peer is a private or loopback address. Safe behind the host's proxy with the app port never exposed;
   if the host's proxy has a public address, set `server.tomcat.remoteip.internal-proxies` to its range.
@@ -96,8 +100,14 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
   a settings.xml proxy, which the Dockerfile writes from `HTTPS_PROXY`). The container: health `UP`, Docker health
   `healthy`, the page with the strict CSP, a 2027 plan, and `browser-check.mjs` passing against it.
 - CI (`.github/workflows/ci.yml`): quality gate with Chromium, an osv-scanner dependency scan (backend and frontend),
-  and the image build plus a smoke test. Linted with actionlint 1.7.7 (with shellcheck): no findings. It has not run
-  yet: github.com is blocked from the VM, so the first run happens on the next push and is checked at STOP 3.
+  and the image build plus a smoke test. Linted with actionlint 1.7.7 (with shellcheck): no findings. Run 1 (commit
+  `f16f040`, read through the GitHub connector): quality gate 12 of 12 PASS on `ubuntu-24.04`, image build and smoke
+  test passed, dependency scan failed on backend Tomcat and Jackson advisories (fixed, AI failure 18).
+- Render: `render.yaml` (Docker web service, Free plan, health check, deploy after checks pass) and
+  `docs/DEPLOYMENT.md`. Field names checked against Render's Blueprint skill on raw.githubusercontent.com; render.com
+  is blocked from the VM, so plan prices and the region list are left to the owner (HUMAN_TODO). Env-var overrides
+  checked on the image (a burst of 3 gave `200 200 200 429`; a 100-byte limit gave 413). Under a 512 MB memory limit
+  the app starts in about 2 s and uses about 150 MB after 50 full-year plans.
 
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
@@ -167,7 +177,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 ## Phase 4: Hardening and QA
 - [x] Full security-reviewer pass, fixes
 - [x] Full ui-reviewer pass across every screen, fixes
-- [x] No high-severity dependency issues (or each explained)
+- [ ] No high-severity dependency issues (or each explained) (backend fixed after the CI scan; re-tick when CI's scan is green)
 - [x] edge-case-hunter across the whole app
 - [x] Every PRD acceptance item and edge case has a passing test; docs/QA.md map updated
 - [x] Performance and accessibility checks, fixes
@@ -177,7 +187,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] Multi-stage Dockerfile
 - [x] GitHub Actions CI (quality-gate plus Docker build)
 - [x] Docker image built in the cloud VM, output shown
-- [ ] Host config (default Render, current pricing checked) and docs/DEPLOYMENT.md
+- [ ] Host config (default Render, current pricing checked) and docs/DEPLOYMENT.md (config and doc done; pricing not checkable: render.com is blocked from the VM, so third-party 2026 figures are marked unverified and the owner confirms them, HUMAN_TODO step 3)
 - [ ] README.md (problem, solution, demo link placeholder, quick start, architecture, limitations, dependencies, "For judges" table)
 - [ ] LAPTOP: README screenshots
 - [ ] docs/ai/AI_WORKFLOW.md finished (stages, subagent table, Claude-Session trailer note)

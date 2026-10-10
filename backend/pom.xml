@@ -19,6 +19,12 @@
 
   <properties>
     <java.version>21</java.version>
+    <!-- Security patches ahead of Spring Boot 4.1.1's managed versions, found by the CI osv-scanner job
+         (2026-10-10): Tomcat 11.0.24 has 3 critical advisories (GHSA-9xv2-5v5q-p794, GHSA-gcx9-497g-6cp6,
+         GHSA-h3x4-894j-xpx5; fixed in 11.0.25) and Jackson 3.1.5 has 7 (fixed in 3.1.7). Remove each
+         override once the Spring Boot version manages the same or a newer patch. -->
+    <tomcat.version>11.0.26</tomcat.version>
+    <jackson-bom.version>3.1.7</jackson-bom.version>
     <jqwik.version>1.10.1</jqwik.version>
     <pitest.version>1.30.0</pitest.version>
     <pitest-junit5.version>1.2.3</pitest-junit5.version>

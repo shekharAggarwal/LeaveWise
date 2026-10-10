@@ -229,3 +229,16 @@ Template:
   `Phase4Review.test.tsx` (failed on the old code); the browser check now runs in the quality gate.
 - Root cause: touch-target size and label-in-name were never measured in a real browser.
 - Rule added: frontend/CLAUDE.md: run `npm run check:browser` before a UI review.
+
+## 18. A dependency check was ticked before the backend had been scanned (2026-10-10)
+- What the AI got wrong (commit `05a4dde`): PROGRESS ticked "No high-severity dependency issues (or each
+  explained)" after `npm audit` passed, while noting that the backend scan couldn't run in the VM (api.osv.dev
+  blocked). The backend in fact carried Tomcat 11.0.24 with 3 critical advisories and Jackson 3.1.5 with 7.
+- How it was caught: the osv-scanner job in the first CI run (`.github/workflows/ci.yml`, run 1 on commit
+  `f16f040`), which listed GHSA-9xv2-5v5q-p794, GHSA-gcx9-497g-6cp6 and GHSA-h3x4-894j-xpx5 for Tomcat and seven
+  GHSAs for Jackson, each with its fixed version.
+- Fix: `pom.xml` overrides `tomcat.version` (11.0.26) and `jackson-bom.version` (3.1.7) until Spring Boot manages
+  them; the jar now holds those versions and all 312 backend tests pass. The CI scan guards it on every push.
+- Root cause: "the scan couldn't run here" was treated as "nothing to report" instead of "not done".
+- Rule added: CLAUDE.md working rules: "A check that couldn't run is not passed: leave its step unticked and say
+  what blocked it."
