@@ -1,0 +1,18 @@
+{
+  "testData": true,
+  "country": "IN",
+  "year": 2028,
+  "list": "Fixture list",
+  "source": {
+    "publisher": "Fixture Publisher",
+    "title": "Fixture memorandum 2028",
+    "url": "https://fixture.gov.in/list.pdf",
+    "retrievedOn": "2026-10-01"
+  },
+  "holidays": [
+    {
+      "date": "2028-03-04",
+      "name": "Fixture Holiday 1"
+    }
+  ]
+}
