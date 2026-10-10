@@ -251,6 +251,9 @@ Every error is `application/problem+json`. `detail` is the message to show; `err
 | Body is not valid JSON | 400 | `unreadable` | `The request could not be read. Reload the page and try again.` |
 | Body over 32 KB | 413 | `too-large` | `The request is too large. Paste at most 50 holiday lines.` |
 | Rate limit reached | 429 | `rate-limited` | `Too many requests. Wait a minute and try again.` |
+| Unknown path under `/api` | 404 | `not-found` | `There is nothing here.` |
+| Wrong HTTP method | 405 | `method-not-allowed` | `Use the method docs/API.md lists.` |
+| Body not sent as JSON | 415 | `unsupported-media-type` | `Send JSON with Content-Type: application/json.` |
 | Unexpected server error | 500 | `internal` | `Something went wrong on our side. Try again.` (details go to the server log without inputs) |
 
 Messages marked (PRD) are word for word from the PRD; the others are this project's choices, recorded in

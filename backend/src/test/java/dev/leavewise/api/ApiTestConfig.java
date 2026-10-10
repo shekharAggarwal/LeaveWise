@@ -8,8 +8,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Test wiring shared by the API and web tests: a clock the test can move (default 2026-10-09, so
@@ -47,8 +47,11 @@ public class ApiTestConfig {
     }
   }
 
-  // @RequestMapping (not @RestController) so component scanning doesn't also register it.
-  @RequestMapping
+  // A test-only endpoint that throws, for the 500 test. Spring 6+ only maps @Controller types, so
+  // it
+  // is a @RestController found by component scanning (test sources only; production has no such
+  // path).
+  @RestController
   public static class BoomController {
     @GetMapping("/api/test-boom")
     @ResponseBody
@@ -62,10 +65,5 @@ public class ApiTestConfig {
   @Primary
   MutableClock testClock() {
     return new MutableClock();
-  }
-
-  @Bean
-  BoomController boomController() {
-    return new BoomController();
   }
 }
