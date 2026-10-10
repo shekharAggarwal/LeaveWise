@@ -13,7 +13,8 @@ Loaded only when working on files in `frontend/`. Root rules in `../CLAUDE.md` s
 - Dates shown to users use Indian format (`Fri, 2 Oct`), via one shared formatter.
 - Async UI work updates state functionally and ignores responses for inputs that have changed; test each async path
   with a deferred response. (AI failure 11)
-- Before a UI review, load every screen at 360 px in Chromium and assert no horizontal overflow. (AI failure 13)
+- Before a UI review, run `npm run check:browser` against the jar (overflow at 360 px, CSP, 24 px touch targets, axe
+  with contrast). (AI failures 13 and 17)
 - The built page must load under the production CSP with no violations: keep `scripts/check-dist-csp.mjs` in the
   build, and load the jar in Chromium after adding a component that injects styles. (AI failure 14)
 - The block below is managed by `astryx init`. Never edit inside it.

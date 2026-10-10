@@ -75,6 +75,15 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - For Phase 5 `docs/DEPLOYMENT.md`: the rate limit keys on the client IP that Tomcat takes from `X-Forwarded-For`
   when the peer is a private or loopback address. Safe behind the host's proxy with the app port never exposed;
   if the host's proxy has a public address, set `server.tomcat.remoteip.internal-proxies` to its range.
+- edge-case-hunter: 6 failing tests, all fixed (AI failures 15 and 16); 3 passing page tests kept for edge cases that
+  only had backend coverage. ui-reviewer: 0 blockers, 3 should-fix, 4 optional; fixed or answered (AI failure 17).
+- New real-browser check in the quality gate (`frontend/scripts/browser-check.mjs`, Chromium against the jar, 360 and
+  1280 px, light and dark): no overflow, no CSP violations, touch targets of 24 px or more (Astryx's 16 px DateInput
+  calendar icon excepted: the date field opens the same picker, WCAG 2.5.8), axe WCAG 2.2 AA with contrast clean.
+  Plan with the defaults, click to results: 101 to 146 ms over two runs. JS bundle 660 kB (197 kB gzipped).
+- Quality gate after the fixes: 12 of 12 checks pass; 312 backend tests, 72 frontend tests, PIT 183 of 187 (98%).
+- Docker: `dockerd` starts in the cloud VM and pulls images (`eclipse-temurin:21-jre-alpine`), so Phase 5 can build
+  the image here.
 - For STOP 3 (accepted, low): container-level 400s for malformed URLs (`/%`, `/api/x%00`) are Tomcat's static HTML
   page without the security headers; problem `instance` echoes the request path to the same caller (JSON only, never
   logged); the rate-limit map sweep can lag briefly under a spray from many IPv6 /64s.
@@ -146,12 +155,12 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 
 ## Phase 4: Hardening and QA
 - [x] Full security-reviewer pass, fixes
-- [ ] Full ui-reviewer pass across every screen, fixes
+- [x] Full ui-reviewer pass across every screen, fixes
 - [x] No high-severity dependency issues (or each explained)
-- [ ] edge-case-hunter across the whole app
-- [ ] Every PRD acceptance item and edge case has a passing test; docs/QA.md map updated
-- [ ] Performance and accessibility checks, fixes
-- [ ] quality-gate passes
+- [x] edge-case-hunter across the whole app
+- [x] Every PRD acceptance item and edge case has a passing test; docs/QA.md map updated
+- [x] Performance and accessibility checks, fixes
+- [x] quality-gate passes
 
 ## Phase 5: Delivery prep (ends at STOP 3)
 - [ ] Multi-stage Dockerfile

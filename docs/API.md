@@ -80,7 +80,8 @@ Request:
 {"year": 2027, "text": "2027-03-04 Example Holiday A\n2027-02-30 Bad date\n\n2026-12-25 Wrong year\nnot a line"}
 ```
 
-`text` is at most 8,000 characters. Blank lines are skipped but still count for line numbers. A bad `year`, a longer
+`text` is at most 8,000 characters (counted as characters, so an emoji is one). The date and name are separated by
+spaces or tabs, including no-break spaces. Blank lines are skipped but still count for line numbers. A bad `year`, a longer
 `text` or an unreadable body get the errors in the table at the end.
 
 Response `200`:
@@ -126,7 +127,7 @@ Request (every field has the PRD default in the form; the API requires them all 
 | Field | Rule |
 | --- | --- |
 | `year` | One of `options.years`. For the current year, only days after today are planned. |
-| `leaveDays` | Whole number from 0 to 60. `12.5`, `"12"`, `-1` and `61` are rejected. |
+| `leaveDays` | Whole number from 0 to 60. `12.5`, `"12"`, `-1` and `61` are rejected; `60.0` and `6e1` are the whole number 60. |
 | `weeklyOffs` | Any days; repeats collapse. Empty is allowed (no weekly off). All seven distinct days is rejected with the PRD message: at least one working day must remain. |
 | `breakStyle` | One of the three ids. |
 | `holidays` | At most 100 items. `date` in the chosen year, `name` 1 to 80 characters. Duplicate dates are merged, keeping every name. Unticked holidays are simply not sent. |

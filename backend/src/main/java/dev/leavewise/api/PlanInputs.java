@@ -101,7 +101,7 @@ final class PlanInputs {
       int i = 0;
       for (JsonNode item : holidaysNode) {
         String field = "holidays[" + i++ + "]";
-        Holiday holiday = holidayOf(item, field, year, problems);
+        Holiday holiday = holidayOf(item, field, year, years, problems);
         if (holiday != null) {
           holidays.add(holiday);
         }
@@ -130,7 +130,7 @@ final class PlanInputs {
   }
 
   private static Holiday holidayOf(
-      JsonNode item, String field, int year, List<FieldProblem> problems) {
+      JsonNode item, String field, int year, PlanYears years, List<FieldProblem> problems) {
     JsonNode dateNode = item.path("date");
     if (!dateNode.isString() || dateNode.stringValue().isBlank()) {
       problems.add(new FieldProblem(field + ".date", "Fill in the holiday date."));
@@ -143,7 +143,7 @@ final class PlanInputs {
     } catch (DateTimeException e) {
       date = null;
     }
-    int exampleYear = year == 0 ? LocalDate.now().getYear() : year;
+    int exampleYear = year == 0 ? years.current() : year;
     if (date == null) {
       problems.add(
           new FieldProblem(field + ".date", "Write holiday dates like " + exampleYear + "-01-26."));
@@ -178,8 +178,20 @@ final class PlanInputs {
     return null;
   }
 
+  /**
+   * A whole number that fits an int. JSON has one number type, so {@code 60.0} and {@code 6e1} are
+   * the whole number 60 (PRD: the error is for a value "not a whole number"); {@code 12.5} and
+   * {@code "12"} are not.
+   */
   private static boolean isInt(JsonNode node) {
-    return node.isIntegralNumber() && node.canConvertToInt();
+    if (node.isIntegralNumber()) {
+      return node.canConvertToInt();
+    }
+    if (!node.isFloatingPointNumber()) {
+      return false;
+    }
+    double value = node.doubleValue();
+    return value == Math.rint(value) && value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE;
   }
 
   private static DayOfWeek dayOf(String text) {

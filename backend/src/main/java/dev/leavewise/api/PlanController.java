@@ -58,7 +58,9 @@ class PlanController {
   }
 
   private Plan planFor(JsonNode body) {
-    PlanRequest request = PlanInputs.parse(body, PlanYears.now(clock));
+    // One reading of the clock per request, for both the year check and the planner.
+    PlanYears years = PlanYears.now(clock);
+    PlanRequest request = PlanInputs.parse(body, years);
     // Year edges (ADR 0006): bundled holidays of the adjacent years extend breaks across 1 Jan and
     // 31 Dec.
     List<Holiday> all = new ArrayList<>(request.holidays());
@@ -66,6 +68,7 @@ class PlanController {
     holidays.forYear(request.year() + 1).map(HolidayList::holidays).ifPresent(all::addAll);
     return planner.plan(
         new PlanRequest(
-            request.year(), request.leaveDays(), request.weeklyOffs(), request.breakStyle(), all));
+            request.year(), request.leaveDays(), request.weeklyOffs(), request.breakStyle(), all),
+        years.today());
   }
 }

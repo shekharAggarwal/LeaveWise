@@ -29,8 +29,16 @@ import {Results} from '../results/Results';
 import {HolidayEditor, type HolidayLoad} from './HolidayEditor';
 import {addHoliday, type HolidayRow} from './holidayRows';
 
-// Seven day buttons don't fit a 360 px phone in one row; no ToggleButtonGroup prop wraps them.
-const styles = stylex.create({wrapRow: {flexWrap: 'wrap'}});
+// Responsive contract for the weekly-off buttons (no ToggleButtonGroup prop does this):
+//   >=480 px  one row of seven, wrapping only if the frame is narrower than the buttons
+//   <480 px   a 4-column grid: Mon to Thu, then Fri to Sun, instead of Sun alone on a second row
+const styles = stylex.create({
+  weekdays: {
+    flexWrap: 'wrap',
+    display: {default: null, '@media (max-width: 479px)': 'grid'},
+    gridTemplateColumns: {default: null, '@media (max-width: 479px)': 'repeat(4, 1fr)'},
+  },
+});
 
 // PRD messages, word for word.
 const LEAVE_DAYS_MESSAGE = 'Enter a whole number from 0 to 60.';
@@ -268,7 +276,10 @@ export function PlannerPage() {
             label="Leave days"
             description="Whole number from 0 to 60."
             value={leaveText}
-            onChange={setLeaveText}
+            onChange={(value) => {
+              setLeaveText(value);
+              setErrors((prev) => ({...prev, leaveDays: undefined}));
+            }}
             onEnter={() => void plan()}
             width={160}
             status={errors.leaveDays ? {type: 'error', message: errors.leaveDays} : undefined}
@@ -298,11 +309,14 @@ export function PlannerPage() {
               Weekly offs
             </Text>
             <ToggleButtonGroup
-              xstyle={styles.wrapRow}
+              xstyle={styles.weekdays}
               label="Weekly offs"
               type="multiple"
               value={weeklyOffs}
-              onChange={(value) => setWeeklyOffs((Array.isArray(value) ? value : []) as Weekday[])}
+              onChange={(value) => {
+                setWeeklyOffs((Array.isArray(value) ? value : []) as Weekday[]);
+                setErrors((prev) => ({...prev, weeklyOffs: undefined}));
+              }}
             >
               {WEEKDAYS.map((d) => (
                 <ToggleButton key={d.id} value={d.id} label={d.label} />
@@ -328,6 +342,11 @@ export function PlannerPage() {
 
         <VStack gap={3}>
           {errors.form && <Banner status="error" title={errors.form} />}
+          {result && result.inputKey !== inputKey && (
+            <Text type="supporting" color="secondary" justify="center">
+              Your inputs changed since the plan below was made.
+            </Text>
+          )}
           <Button
             label="Plan my leaves"
             variant="primary"

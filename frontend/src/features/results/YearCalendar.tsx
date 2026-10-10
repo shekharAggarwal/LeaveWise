@@ -18,13 +18,16 @@ import {describeDay} from './describeDay';
 
 const WEEKDAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-/** Short visible code per kind; colour is never the only signal (PRD, Year calendar). */
-const CODE: Record<CalendarDay['kind'], string> = {
-  LEAVE: 'L',
-  HOLIDAY: 'H',
-  WEEKLY_OFF: 'W',
-  WORKING: '',
-};
+/**
+ * Short visible code per kind; colour is never the only signal (PRD, Year calendar). The letter is a
+ * symbol keyed by the legend, drawn as generated content like an icon, so a day button's text is
+ * just its day number, which its spoken name ("Sun, 3 Jan: weekly off") contains (WCAG 2.5.3).
+ */
+const codeStyles = stylex.create({
+  LEAVE: {'::after': {content: '"L"'}},
+  HOLIDAY: {'::after': {content: '"H"'}},
+  WEEKLY_OFF: {'::after': {content: '"W"'}},
+});
 
 const styles = stylex.create({
   cell: {
@@ -213,10 +216,11 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
                     )}
                   >
                     <span aria-hidden="true">{dayOfMonth(day.date)}</span>
-                    {CODE[day.kind] && (
-                      <span aria-hidden="true" {...stylex.props(styles.code)}>
-                        {CODE[day.kind]}
-                      </span>
+                    {day.kind !== 'WORKING' && (
+                      <span
+                        aria-hidden="true"
+                        {...stylex.props(styles.code, codeStyles[day.kind])}
+                      />
                     )}
                   </button>
                 );

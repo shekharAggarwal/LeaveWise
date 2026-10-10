@@ -33,6 +33,7 @@ and an `.ics` file. No login, nothing stored. Hackathon entry, submitted 29 Oct 
 | Frontend dev server | `cd frontend && npm run dev` (proxies `/api` to 8080) |
 | Frontend tests, lint, build | `cd frontend && npm test && npm run lint && npm run build` |
 | Astryx health | `cd frontend && npm run astryx -- doctor` |
+| Real-browser check (overflow, CSP, touch targets, axe) | `cd frontend && npm run check:browser -- http://localhost:8080` (jar running with the built page) |
 
 ## Architecture map
 
@@ -49,7 +50,8 @@ scripts/  quality-gate.sh and delivery scripts
 
 ## Coding standards
 
-- Planner code has no Spring imports and no I/O. Time comes from an injected `java.time.Clock` (zone Asia/Kolkata).
+- Planner code has no Spring imports and no I/O. Time comes from an injected `java.time.Clock` (zone Asia/Kolkata),
+  read once per request and passed down, so every rule in a request sees the same day. (AI failure 15)
 - Java: records for data, immutable collections, no nulls across package boundaries, google-java-format (Spotless).
 - TypeScript: `strict`, no `any`, no non-null assertions; API types in one module that mirrors `docs/API.md`.
 - UI only through Astryx: the `astryx-ui` skill is the rulebook. Lint blocks raw `<div>` and inline `style`.
@@ -84,5 +86,7 @@ scripts/  quality-gate.sh and delivery scripts
   tests, then the code. (AI failure 5)
 - Every result state written into a contract needs an example input that produces it; if none exists, it doesn't go
   in. (AI failure 6)
+- A rule checked in both the browser and the server is one rule: same cases, same counting (characters, not UTF-16
+  units), same whitespace; when one side changes, test the other with the same inputs. (AI failure 16)
 - Decide routing in the container (URL patterns, servlet path), never by string-matching `getRequestURI()`; test
   path-sensitive security with a real server. (AI failure 7)

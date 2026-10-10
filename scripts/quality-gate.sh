@@ -80,6 +80,30 @@ astryx_doctor() {
   fi
 }
 
+# Starts the jar from "Backend tests" serving the page from "Frontend build" (fixture holidays, a
+# free port), then runs the real-browser check: overflow, CSP, touch targets, axe, plan time.
+browser_check() {
+  local port log pid status
+  port="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')"
+  log="$(mktemp)"
+  java -jar "$ROOT/backend/target/leavewise.jar" --server.port="$port" \
+    --leavewise.holidays.location="file:$ROOT/backend/src/test/resources/fixtures/holidays/india-*.json" \
+    --leavewise.holidays.allow-test-data=true \
+    --spring.web.resources.static-locations="file:$ROOT/frontend/dist/" >"$log" 2>&1 &
+  pid=$!
+  for _ in $(seq 1 60); do
+    curl -fs "http://127.0.0.1:$port/actuator/health" >/dev/null && break
+    sleep 0.5
+  done
+  (cd "$ROOT/frontend" && node scripts/browser-check.mjs "http://127.0.0.1:$port")
+  status=$?
+  kill "$pid" 2>/dev/null
+  wait "$pid" 2>/dev/null
+  if [[ $status -ne 0 ]]; then tail -20 "$log"; fi
+  rm -f "$log"
+  return $status
+}
+
 hook_tests() { (cd "$ROOT" && node --test .claude/hooks/*.test.mjs); }
 
 # Scans every tracked and new (not ignored) file, and refuses any committed .env file.
@@ -115,6 +139,10 @@ if wants frontend; then
   run "Frontend tests (Vitest + axe)" frontend_tests
   run "Frontend typecheck and build (tsc + Vite)" frontend_build
   run "Astryx doctor" astryx_doctor
+fi
+
+if [[ -z "$ONLY" ]]; then
+  run "Browser check (Chromium: overflow, CSP, touch targets, axe)" browser_check
 fi
 
 if wants scan; then

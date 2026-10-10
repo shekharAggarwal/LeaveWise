@@ -15,9 +15,11 @@ import {TextInput} from '@astryxdesign/core/TextInput';
 import {messageOf, parseHolidays} from '../../api/client';
 import type {HolidaysResponse, IsoDate} from '../../api/types';
 import {formatDay} from '../../lib/dates';
+import {hasControlCharacter} from '../../lib/validation';
 import type {HolidayRow} from './holidayRows';
 
 const MAX_NAME_LENGTH = 80;
+const CONTROL_CHARACTER_MESSAGE = "Holiday names can't contain line breaks or control characters.";
 
 /** Astryx DateInput's date type (not exported publicly): YYYY-MM-DD as a template literal. */
 type StrictIsoDate = `${number}${number}${number}${number}-${number}${number}-${number}${number}`;
@@ -63,9 +65,11 @@ export function HolidayEditor({year, load, rows, ticked, onAdd, onTickedChange, 
       date: date && date.startsWith(`${year}-`) ? undefined : `Pick a date in ${year}.`,
       name: !trimmed
         ? 'Give each holiday a name.'
-        : [...trimmed].length > MAX_NAME_LENGTH
-          ? 'Keep holiday names to 80 characters or fewer.'
-          : undefined,
+        : hasControlCharacter(trimmed)
+          ? CONTROL_CHARACTER_MESSAGE
+          : [...trimmed].length > MAX_NAME_LENGTH
+            ? 'Keep holiday names to 80 characters or fewer.'
+            : undefined,
     };
     setAddError(errors);
     if (errors.date || errors.name || !date) return;
@@ -168,7 +172,10 @@ export function HolidayEditor({year, load, rows, ticked, onAdd, onTickedChange, 
               <DateInput
                 label="Holiday date"
                 value={date}
-                onChange={setDate}
+                onChange={(value) => {
+                  setDate(value);
+                  setAddError((prev) => ({...prev, date: undefined}));
+                }}
                 min={strictDate(`${year}-01-01`)}
                 max={strictDate(`${year}-12-31`)}
                 status={addError.date ? {type: 'error', message: addError.date} : undefined}
@@ -176,7 +183,10 @@ export function HolidayEditor({year, load, rows, ticked, onAdd, onTickedChange, 
               <TextInput
                 label="Holiday name"
                 value={name}
-                onChange={setName}
+                onChange={(value) => {
+                  setName(value);
+                  setAddError((prev) => ({...prev, name: undefined}));
+                }}
                 onEnter={addOne}
                 status={addError.name ? {type: 'error', message: addError.name} : undefined}
               />
@@ -186,7 +196,15 @@ export function HolidayEditor({year, load, rows, ticked, onAdd, onTickedChange, 
             </HStack>
           </VStack>
 
-          <Collapsible trigger={<Text type="body">Paste a list</Text>} defaultIsOpen={false}>
+          <Collapsible
+            trigger={
+              // Padding lifts the trigger from 18 px to a 24 px+ touch target (ui-reviewer, Phase 4).
+              <HStack as="span" paddingBlock={1}>
+                <Text type="body">Paste a list</Text>
+              </HStack>
+            }
+            defaultIsOpen={false}
+          >
             <VStack gap={2}>
               <TextArea
                 label="Paste holidays"

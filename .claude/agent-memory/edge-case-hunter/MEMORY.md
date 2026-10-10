@@ -19,5 +19,27 @@ LeaveBreakTest (daysOffPerLeave division and rounding). PIT went 178/184 -> 180/
 Open interpretation (not a test, PRD text allows it): planning next year on 30/31 Dec counts today and earlier days
 in the leading edge, unlike ADR 0006's "days up to and including today are not counted" for the current year.
 
-Ideas not yet tried: API layer (malformed JSON, huge bodies, unicode names, 100-holiday cap, paste parser line 51+),
-.ics folding with long unicode holiday names.
+(API-layer ideas from Phase 2 were tried in Phase 3, below.)
+
+## 2026-10-10, Phase 3 whole-app attack (api, web, holidays, ics, frontend)
+
+Found (failing tests kept, 5 backend + 1 frontend):
+- NewYearMidnightApiTest: PlanController reads the clock twice (PlanYears.now, then Planner) -> a request that
+  straddles midnight IST on 31 Dec is a 500 ("cannot plan a past year"). Needs its own context with a stepping clock.
+- EdgeCaseHuntApiTest: paste "YYYY-MM-DD<U+00A0>Name" gets "Start the line with a date" (Java \s is ASCII only;
+  strip() keeps NBSP; NBSP-only line is also not blank). PlanInputs example year uses LocalDate.now() (system
+  clock) when year is invalid. leaveDays 60.0 / 6e1 rejected (isIntegralNumber). Paste 8,000 limit counts UTF-16
+  units, not characters.
+- EdgeCaseHunt.test.tsx: HolidayEditor manual add doesn't check control characters (tab via paste), server then
+  fails every plan with a page-level banner.
+
+Dead ends (behaved per contract; don't repeat):
+- ics: Accept text/calendar + invalid body -> 400 problem+json; break crossing 31 Dec (DTEND next-year, UID ok);
+  NO_DAYS_LEFT ics = headers only. Lone surrogate in a name: JSON escapes it, ics writes "?" (no 500).
+- Body "[]" / "null" -> 400 invalid-input "Send the plan inputs as a JSON object."; 5000-deep nesting and
+  5000-digit number -> 400 unreadable. Plan next year on 31 Dec, 29 Feb 2028 holiday with clock in 2027: fine.
+- Frontend: formatRange across years (tested already), YearCalendar Home/End/ArrowLeft 1 Jan/ArrowRight 31 Dec,
+  leap-year grid, LEAVES_LEFT_OVER summary, NO_DAYS_LEFT results: all fine (kept as UI coverage tests).
+
+Not tried yet: 100 holidays x 80-emoji names (>32 KB -> 413 for a field-valid request; doc says 413 for >32 KB, so
+contract conflict, not a defect); \u0085/\u000C in pasted text splitting lines; X-Forwarded-For spoofing.

@@ -17,7 +17,10 @@ public final class HolidayPasteParser {
   public static final String CONTROL_CHARACTER_MESSAGE =
       "Holiday names can't contain line breaks or control characters.";
 
-  private static final Pattern LINE = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})(?:\\s+(.*))?");
+  // \p{Zs} adds the no-break space (U+00A0) and other space separators that lists copied from web
+  // pages and PDFs use between columns; \s alone is ASCII whitespace only.
+  private static final Pattern LINE =
+      Pattern.compile("(\\d{4}-\\d{2}-\\d{2})(?:[\\s\\p{Zs}]+(.*))?");
 
   private HolidayPasteParser() {}
 
@@ -43,7 +46,8 @@ public final class HolidayPasteParser {
 
   /**
    * Blank lines are skipped but still count for line numbers; lines 51 and later are reported,
-   * never loaded. The date and name are separated by whitespace; the name is trimmed.
+   * never loaded. The date and name are separated by whitespace, including no-break spaces; the
+   * name is trimmed.
    */
   public static Result parse(int year, String text) {
     List<ParsedHoliday> holidays = new ArrayList<>();
@@ -51,7 +55,7 @@ public final class HolidayPasteParser {
     String[] lines = text.split("\\R", -1);
     for (int i = 0; i < lines.length; i++) {
       int number = i + 1;
-      String line = lines[i].strip();
+      String line = stripSpaces(lines[i]);
       if (line.isEmpty()) {
         continue;
       }
@@ -77,7 +81,7 @@ public final class HolidayPasteParser {
         errors.add(new LineError(number, date + " is not in " + year + "."));
         continue;
       }
-      String name = m.group(2) == null ? "" : m.group(2).strip();
+      String name = m.group(2) == null ? "" : stripSpaces(m.group(2));
       if (name.isEmpty()) {
         errors.add(new LineError(number, "Add a name after the date."));
       } else if (hasControlCharacter(name)) {
@@ -89,5 +93,25 @@ public final class HolidayPasteParser {
       }
     }
     return new Result(holidays, errors);
+  }
+
+  /**
+   * Like {@link String#strip()}, but also removes no-break spaces (a loop, so no regex
+   * backtracking).
+   */
+  private static String stripSpaces(String text) {
+    int start = 0;
+    int end = text.length();
+    while (start < end && isSpace(text.charAt(start))) {
+      start++;
+    }
+    while (end > start && isSpace(text.charAt(end - 1))) {
+      end--;
+    }
+    return text.substring(start, end);
+  }
+
+  private static boolean isSpace(char c) {
+    return Character.isWhitespace(c) || Character.getType(c) == Character.SPACE_SEPARATOR;
   }
 }

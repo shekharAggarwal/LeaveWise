@@ -31,7 +31,17 @@ public final class Planner {
    * @throws IllegalArgumentException if the plan year is before the current year
    */
   public Plan plan(PlanRequest request) {
-    LocalDate today = LocalDate.now(clock);
+    return plan(request, LocalDate.now(clock));
+  }
+
+  /**
+   * Plans as of {@code today}. A caller that has already checked the year against a reading of the
+   * clock passes that same day, so a request that straddles midnight on 31 December is judged
+   * against one "today", never two.
+   *
+   * @throws IllegalArgumentException if the plan year is before {@code today}'s year
+   */
+  public Plan plan(PlanRequest request, LocalDate today) {
     PlanningCalendar calendar = PlanningCalendar.of(request, today);
     List<LocalDate> horizon = calendar.horizon();
     boolean[] dayOff = calendar.dayOff();

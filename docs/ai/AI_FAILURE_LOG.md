@@ -188,3 +188,44 @@ Template:
   headers until Phase 4.
 - Rule added: frontend/CLAUDE.md: "The built page must load under the production CSP with no violations: keep
   `scripts/check-dist-csp.mjs` in the build, and load the jar in Chromium after adding a component that injects styles."
+
+## 15. A plan request at New Year midnight returned a 500 (2026-10-10)
+- What the AI got wrong (commit `260f86d`): `PlanController` checked the year against one reading of the clock
+  (`PlanYears.now`) and the planner read the clock again, so a valid 2026 request arriving at 23:59:59.999 IST on
+  31 Dec reached the planner on 1 Jan, which threw "cannot plan a past year": a 500 instead of a plan or a 400.
+- How it was caught: edge-case-hunter (Phase 4 whole-app attack), `NewYearMidnightApiTest` with a clock that steps
+  over midnight between readings.
+- Fix: `Planner.plan(request, today)`; the controller reads the clock once per request and passes that day to both
+  the year check and the planner. The test now passes.
+- Root cause: "time comes from an injected Clock" was followed, but nothing said to read it only once per request.
+- Rule added: CLAUDE.md coding standards: the clock is "read once per request and passed down".
+
+## 16. Browser and server checks of the same input drifted apart (2026-10-10)
+- What the AI got wrong:
+  - the browser added a holiday name with a tab, which the server refuses (commit `b02204f`, `HolidayEditor.addOne`);
+  - the paste parser didn't treat a no-break space after the date as whitespace (commit `260f86d`);
+  - the 8,000-character paste limit counted UTF-16 units, while names counted characters (commit `260f86d`);
+  - the bad-date example year came from the system clock, not the app clock (commit `07c1a2f`).
+  Also changed after the same report, as an interpretation rather than a bug: `leaveDays` written `60.0` or `6e1`
+  is now the whole number 60 on the server (docs/API.md). The browser's text field still asks for digits only.
+- How it was caught: edge-case-hunter, `EdgeCaseHuntApiTest` (4 tests) and `EdgeCaseHunt.test.tsx` (1 test); all 5
+  failed on the old code.
+- Fix: a shared-rule `hasControlCharacter` in `frontend/src/lib/validation.ts` (unit tests list the server's cases),
+  `[\s\p{Zs}]` separators and a loop-based strip in `HolidayPasteParser`, `codePointCount` for the paste limit,
+  `PlanYears` passed into the holiday check.
+- Root cause: each side's check was written from its own part of docs/API.md, not as one rule with shared cases.
+- Rule added: CLAUDE.md working rules: "A rule checked in both the browser and the server is one rule: same cases,
+  same counting, same whitespace."
+
+## 17. Small touch targets and calendar names that didn't match their visible text (2026-10-10)
+- What the AI got wrong (commit `b02204f`): the "Paste a list" trigger was 18 px tall; the weekday buttons wrapped at
+  360 px with Sun alone on a second row; each calendar day showed "3 W" while its spoken name was "Sun, 3 Jan: weekly
+  off", so the visible text wasn't part of the name (WCAG 2.5.3) on 119 day buttons.
+- How it was caught: ui-reviewer (Phase 4 full pass, Playwright measurements) for the first two; the new
+  `frontend/scripts/browser-check.mjs` (axe in Chromium, `label-content-name-mismatch`) for the third. The jsdom axe
+  run in `App.test` did not report it.
+- Fix: padded trigger (28 px), a 4-column weekday grid under 480 px (measured: 7 buttons at 75x32 px in 2 rows),
+  the code letter drawn as generated content like an icon, so a day's text is its day number. Regression test
+  `Phase4Review.test.tsx` (failed on the old code); the browser check now runs in the quality gate.
+- Root cause: touch-target size and label-in-name were never measured in a real browser.
+- Rule added: frontend/CLAUDE.md: run `npm run check:browser` before a UI review.

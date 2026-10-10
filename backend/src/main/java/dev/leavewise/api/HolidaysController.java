@@ -64,7 +64,7 @@ class HolidaysController {
       throw new InvalidInputException("text", "Paste the holiday list as text.");
     }
     String text = textNode.stringValue();
-    if (text.length() > MAX_PASTE_CHARACTERS) {
+    if (text.codePointCount(0, text.length()) > MAX_PASTE_CHARACTERS) {
       throw new InvalidInputException("text", "Paste at most 50 lines (8,000 characters).");
     }
     HolidayPasteParser.Result result = HolidayPasteParser.parse(year, text);
