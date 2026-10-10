@@ -99,40 +99,40 @@ export const leavewiseTheme = {
     "--color-syntax-property": "light-dark(#4e6357, #94b2a0)",
     "--color-syntax-punctuation": "light-dark(#5e5e5e, #ababb0)",
     "--color-syntax-background": "light-dark(#f3f3f5, #171719)",
-    "--color-accent": "light-dark(#3341b8, #aab4f6)",
-    "--color-accent-muted": "light-dark(#3341b81a, #aab4f626)",
+    "--color-accent": "light-dark(#3341b8, #ffd8a6)",
+    "--color-accent-muted": "light-dark(#eef0fc, #ffd8a626)",
     "--color-neutral": "light-dark(#25252a0f, #f3f3f51a)",
-    "--color-background-surface": "light-dark(#ffffff, #1b1b1f)",
-    "--color-background-body": "light-dark(#f3f3f5, #111015)",
+    "--color-background-surface": "light-dark(#ffffff, #1d1e24)",
+    "--color-background-body": "light-dark(#f5f4f0, #1d1e24)",
     "--color-overlay": "light-dark(#25252a80, #28282acc)",
     "--color-overlay-hover": "light-dark(#25252a0d, #f3f3f50d)",
     "--color-overlay-pressed": "light-dark(#25252a1a, #f3f3f51a)",
-    "--color-background-muted": "light-dark(#e2e2e8, #3b3b3f)",
-    "--color-text-primary": "light-dark(#25252a, #f3f3f5)",
-    "--color-text-secondary": "light-dark(#5e5e63, #ababb0)",
+    "--color-background-muted": "light-dark(#e9e8e3, #2a2b33)",
+    "--color-text-primary": "light-dark(#1d1e24, #ffffff)",
+    "--color-text-secondary": "light-dark(#575963, #c9cad3)",
     "--color-text-disabled": "light-dark(#d7d7da, #5e5e61)",
-    "--color-text-accent": "light-dark(#2b3aa8, #c3caf9)",
+    "--color-text-accent": "light-dark(#2b3aa8, #ffd8a6)",
     "--color-on-dark": "#FFFFFF",
     "--color-on-light": "light-dark(#25252a, #28282a)",
-    "--color-on-accent": "light-dark(#ffffff, #15183a)",
+    "--color-on-accent": "light-dark(#ffffff, #1d1e24)",
     "--color-on-success": "light-dark(#374c36, #d0e9ce)",
     "--color-on-error": "light-dark(#58413e, #f9dcd7)",
     "--color-on-warning": "light-dark(#524622, #f4e1b7)",
-    "--color-icon-accent": "light-dark(#2b3aa8, #c3caf9)",
-    "--color-icon-primary": "light-dark(#25252a, #f3f3f5)",
+    "--color-icon-accent": "light-dark(#2b3aa8, #ffd8a6)",
+    "--color-icon-primary": "light-dark(#1d1e24, #ffffff)",
     "--color-icon-secondary": "light-dark(#83838a, #9d9da3)",
     "--color-icon-disabled": "light-dark(#d7d7da, #5e5e61)",
-    "--color-background-card": "light-dark(#FFFFFF, #242325)",
+    "--color-background-card": "light-dark(#ffffff, #1d1e24)",
     "--color-background-popover": "light-dark(#ffffff, #25252a)",
-    "--color-background-inverted": "light-dark(#25252a, #f3f3f5)",
+    "--color-background-inverted": "light-dark(#1d1e24, #ffffff)",
     "--color-success": "light-dark(#374c36, #b4cdb2)",
     "--color-success-muted": "light-dark(#d0e9ce, #b4cdb2)",
     "--color-error": "light-dark(#58413e, #dcc0bc)",
     "--color-error-muted": "light-dark(#f9dcd7, #dcc0bc)",
     "--color-warning": "light-dark(#524622, #d7c59c)",
-    "--color-warning-muted": "light-dark(#f4e1b7, #d7c59c)",
-    "--color-border": "light-dark(#e2e2e8, #f3f3f51a)",
-    "--color-border-emphasized": "light-dark(#83838a, #5e5e61)",
+    "--color-warning-muted": "light-dark(#fff5ea, #fff5ea)",
+    "--color-border": "light-dark(#e2e0d8, #3a3b44)",
+    "--color-border-emphasized": "light-dark(#d6d4cc, #5e5f66)",
     "--color-skeleton": "light-dark(#d4d4da, #5e5e64)",
     "--color-shadow": "light-dark(#25252a1a, #0000004d)",
     "--color-tint-hover": "light-dark(black, white)",
@@ -144,18 +144,18 @@ export const leavewiseTheme = {
     "--color-border-cyan": "light-dark(#bedad7, #28403e)",
     "--color-icon-cyan": "light-dark(#334b49, #cce8e5)",
     "--color-text-cyan": "light-dark(#334b49, #cce8e5)",
-    "--color-background-gray": "light-dark(#e2e2e8, #525257)",
+    "--color-background-gray": "light-dark(#e9e8e3, #e9e8e3)",
     "--color-border-gray": "light-dark(#d4d4da, #3b3b3f)",
     "--color-icon-gray": "light-dark(#46464b, #e2e2e8)",
-    "--color-text-gray": "light-dark(#46464b, #e2e2e8)",
+    "--color-text-gray": "light-dark(#4e5058, #4e5058)",
     "--color-background-green": "light-dark(#d0e9ce, #425841)",
     "--color-border-green": "light-dark(#c2dbc0, #2b402b)",
     "--color-icon-green": "light-dark(#374c36, #d0e9ce)",
     "--color-text-green": "light-dark(#374c36, #d0e9ce)",
-    "--color-background-orange": "light-dark(#ffdcbb, #684d32)",
-    "--color-border-orange": "light-dark(#f1ceae, #4f361c)",
+    "--color-background-orange": "light-dark(#ffd8a6, #ffd8a6)",
+    "--color-border-orange": "light-dark(#f1ceae, #f1ceae)",
     "--color-icon-orange": "light-dark(#5b4227, #ffdcbb)",
-    "--color-text-orange": "light-dark(#5b4227, #ffdcbb)",
+    "--color-text-orange": "light-dark(#6e3a00, #6e3a00)",
     "--color-background-pink": "light-dark(#f0dde8, #5e4e57)",
     "--color-border-pink": "light-dark(#e2cfda, #463740)",
     "--color-icon-pink": "light-dark(#52424c, #f0dde8)",
@@ -243,6 +243,56 @@ export const leavewiseTheme = {
         "fontFamily": "var(--font-family-heading)",
         "fontSize": "var(--text-display-3-size)",
         "lineHeight": "var(--text-display-3-leading)"
+      },
+      "type:hero": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "52px",
+        "fontWeight": "800",
+        "lineHeight": "1.05",
+        "letterSpacing": "-0.03em"
+      },
+      "type:hero-phone": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "34px",
+        "fontWeight": "800",
+        "lineHeight": "1.1",
+        "letterSpacing": "-0.03em"
+      },
+      "type:title": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "26px",
+        "fontWeight": "700",
+        "lineHeight": "1.2",
+        "letterSpacing": "-0.02em"
+      },
+      "type:title-phone": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "28px",
+        "fontWeight": "700",
+        "lineHeight": "1.15",
+        "letterSpacing": "-0.02em"
+      },
+      "type:card": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "22px",
+        "fontWeight": "700",
+        "lineHeight": "1.25",
+        "letterSpacing": "-0.01em"
+      },
+      "type:eyebrow": {
+        "fontFamily": "var(--font-family-body)",
+        "fontSize": "13px",
+        "fontWeight": "600",
+        "lineHeight": "1.4",
+        "letterSpacing": "0.08em",
+        "textTransform": "uppercase",
+        "color": "var(--color-text-accent)"
+      },
+      "type:month": {
+        "fontFamily": "var(--font-family-body)",
+        "fontSize": "14px",
+        "fontWeight": "700",
+        "lineHeight": "1.4"
       }
     },
     "text": {
@@ -285,11 +335,43 @@ export const leavewiseTheme = {
         "fontFamily": "var(--font-family-heading)",
         "fontSize": "var(--text-display-3-size)",
         "lineHeight": "var(--text-display-3-leading)"
+      },
+      "type:wordmark": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "22px",
+        "fontWeight": "800",
+        "letterSpacing": "-0.02em"
+      },
+      "type:field": {
+        "fontSize": "14px",
+        "fontWeight": "600",
+        "lineHeight": "1.4"
+      },
+      "type:small": {
+        "fontSize": "13px",
+        "lineHeight": "1.45"
+      },
+      "type:figure": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "26px",
+        "fontWeight": "700",
+        "lineHeight": "1.2"
+      },
+      "type:ratio": {
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "18px",
+        "fontWeight": "700",
+        "lineHeight": "1.2"
+      },
+      "type:lead": {
+        "fontSize": "17px",
+        "lineHeight": "1.5"
       }
     },
     "button": {
       "base": {
-        "borderRadius": "var(--radius-full)"
+        "borderRadius": "12px",
+        "fontWeight": "600"
       },
       "variant:secondary": {
         "backgroundColor": "transparent",
@@ -303,6 +385,41 @@ export const leavewiseTheme = {
       "variant:destructive": {
         "backgroundColor": "var(--color-background-red)",
         "color": "var(--color-text-red)"
+      },
+      "variant:plan": {
+        "minHeight": "56px",
+        "width": "100%",
+        "borderRadius": "14px",
+        "backgroundColor": "var(--color-accent)",
+        "color": "var(--color-on-accent)",
+        "fontFamily": "var(--font-family-heading)",
+        "fontSize": "17px",
+        "fontWeight": "700"
+      },
+      "variant:stepper": {
+        "width": "48px",
+        "height": "48px",
+        "minWidth": "48px",
+        "borderRadius": "12px",
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "#d6d4cc",
+        "backgroundColor": "#ffffff",
+        "color": "#1d1e24"
+      },
+      "variant:link": {
+        "backgroundColor": "transparent",
+        "color": "var(--color-text-accent)",
+        "fontWeight": "700",
+        "paddingInline": "4px"
+      },
+      "variant:outline": {
+        "backgroundColor": "#ffffff",
+        "color": "#1d1e24",
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "#1d1e24",
+        "fontWeight": "700"
       }
     },
     "badge": {
@@ -397,6 +514,11 @@ export const leavewiseTheme = {
       },
       "status:error": {
         "--color-error": "light-dark(#a58b86, #c0a5a1)"
+      },
+      "size:lg": {
+        "minHeight": "48px",
+        "borderRadius": "12px",
+        "borderColor": "#d6d4cc"
       }
     },
     "text-area": {
@@ -489,7 +611,8 @@ export const leavewiseTheme = {
     },
     "card": {
       "base": {
-        "padding": "var(--spacing-3)"
+        "padding": "28px",
+        "borderRadius": "20px"
       }
     },
     "section": {
@@ -497,14 +620,75 @@ export const leavewiseTheme = {
         "padding": "var(--spacing-3)"
       }
     },
+    "segmented-control": {
+      "base": {
+        "backgroundColor": "#f0efea",
+        "borderRadius": "12px",
+        "padding": "4px"
+      }
+    },
+    "segmented-control-item": {
+      "base": {
+        "minHeight": "44px",
+        "borderRadius": "9px",
+        "fontWeight": "600",
+        "color": "#575963"
+      },
+      "selected": {
+        "backgroundColor": "#ffffff",
+        "color": "#1d1e24",
+        "fontWeight": "700",
+        "boxShadow": "0 1px 3px rgba(29, 30, 36, 0.12)"
+      }
+    },
     "toggle-button": {
       "base": {
-        "paddingInline": "var(--spacing-1)",
-        "minWidth": "0"
+        "minHeight": "44px",
+        "minWidth": "0",
+        "paddingInline": "0",
+        "borderRadius": "10px",
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "#d6d4cc",
+        "backgroundColor": "#ffffff",
+        "color": "#1d1e24",
+        "fontSize": "13px"
       },
-      "isPressed": {
-        "backgroundColor": "var(--color-background-inverted)",
-        "color": "var(--color-background-surface)"
+      "isPressed:true": {
+        "backgroundColor": "#1d1e24",
+        "borderColor": "#1d1e24",
+        "color": "#ffffff",
+        "fontWeight": "600"
+      }
+    },
+    "radio-list": {
+      "base": {
+        "gap": "8px"
+      }
+    },
+    "radio-list-item": {
+      "base": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "#d6d4cc",
+        "borderRadius": "12px",
+        "padding": "12px 14px"
+      },
+      "selected": {
+        "borderWidth": "2px",
+        "borderColor": "#3341b8",
+        "backgroundColor": "#eef0fc",
+        "padding": "11px 13px"
+      }
+    },
+    "token": {
+      "base": {
+        "backgroundColor": "#ffffff",
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "#e2e0d8",
+        "borderRadius": "999px",
+        "color": "#575963"
       }
     }
   },

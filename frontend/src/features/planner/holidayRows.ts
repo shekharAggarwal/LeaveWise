@@ -16,3 +16,8 @@ export function addHoliday(rows: HolidayRow[], date: IsoDate, name: string): Hol
   }
   return [...rows, {date, names: [name], added: true}].sort((a, b) => a.date.localeCompare(b.date));
 }
+
+/** "6 of 6 on": how many holidays count toward the plan. */
+export function countOn(rows: HolidayRow[], ticked: Set<IsoDate>): string {
+  return `${rows.filter((r) => ticked.has(r.date)).length} of ${rows.length} on`;
+}

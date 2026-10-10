@@ -22,7 +22,9 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     stubApi();
     await renderLoaded();
 
-    expect(screen.getByRole('heading', {level: 1, name: 'LeaveWise'})).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {level: 1, name: 'Turn your leaves into the longest breaks'}),
+    ).toBeInTheDocument();
     expect(screen.getByRole('textbox', {name: 'Leave days'})).toHaveValue('12');
     expect(screen.getByRole('radio', {name: '2027'})).toBeChecked();
     expect(screen.getByRole('button', {name: 'Sat'})).toHaveAttribute('aria-pressed', 'true');
@@ -52,7 +54,7 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     await user.click(screen.getByRole('checkbox', {name: /Fixture Holiday 1/}));
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
 
-    const results = await screen.findByRole('region', {name: 'Your plan'});
+    const results = await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     const request = calls.find((c) => c.url === '/api/plan')?.body as PlanRequest;
     expect(request.leaveDays).toBe(2);
     expect(request.year).toBe(2027);
@@ -68,14 +70,14 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     expect(within(results).getByText(/across 2 breaks/)).toBeInTheDocument();
 
     // Break list: dates, days off, leave dates, holidays inside, days off per leave.
-    const breaks = within(results).getByRole('list', {name: 'Breaks'});
+    const breaks = within(results).getByRole('list', {name: 'Your breaks'});
     const [first] = within(breaks).getAllByRole('listitem');
     if (!first) throw new Error('expected at least one break');
     expect(first).toHaveTextContent('Thu, 4 Mar – Sun, 7 Mar');
     expect(first).toHaveTextContent('4 days off');
-    expect(first).toHaveTextContent('Leave: Fri, 5 Mar');
+    expect(first).toHaveTextContent('leave Fri, 5 Mar');
     expect(first).toHaveTextContent('Fixture Holiday 2');
-    expect(first).toHaveTextContent('4.0 days off per leave');
+    expect(first).toHaveTextContent('4.0per leave');
 
     // Year calendar: all 12 months, each day labelled in words, not colour alone.
     for (const month of ['January', 'June', 'December']) {
@@ -83,16 +85,18 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     }
     const leaveDay = within(results).getByRole('button', {name: /^Fri, 5 Mar: leave day/});
     await user.click(leaveDay);
-    const announced = within(results).getByText(
-      'Fri, 5 Mar: leave day, part of a 4-day break (Thu, 4 Mar – Sun, 7 Mar)',
-    );
+    const announced = within(results).getByText('Fri, 5 Mar · Leave day');
     expect(announced.closest('[role="status"]')).not.toBeNull(); // read out when tapped
-    expect(within(results).getAllByText('Leave day').length).toBeGreaterThan(0); // legend
+    expect(
+      within(results).getByText(
+        'Break 1: Thu, 4 Mar – Sun, 7 Mar, 4 days off with Fixture Holiday 2',
+      ),
+    ).toBeInTheDocument();
+    const legend = within(results).getByRole('list', {name: 'Legend'});
+    expect(within(legend).getByText('Leave')).toBeInTheDocument();
 
     // Calendar file.
-    expect(
-      within(results).getByRole('button', {name: 'Download calendar file (.ics)'}),
-    ).toBeEnabled();
+    expect(within(results).getByRole('button', {name: 'Add to calendar (.ics)'})).toBeEnabled();
   });
 
   it('downloads the .ics for the same inputs', async () => {
@@ -103,7 +107,7 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
 
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await user.click(await screen.findByRole('button', {name: 'Download calendar file (.ics)'}));
+    await user.click(await screen.findByRole('button', {name: 'Add to calendar (.ics)'}));
 
     await waitFor(() => expect(calls.some((c) => c.url === '/api/plan/ics')).toBe(true));
     const plan = calls.find((c) => c.url === '/api/plan')?.body;
@@ -116,7 +120,7 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     const {calls} = stubApi();
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     await user.click(screen.getByRole('radio', {name: /Short trips/}));
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
     await waitFor(() => expect(calls.filter((c) => c.url === '/api/plan')).toHaveLength(2));
@@ -170,7 +174,7 @@ describe('Validation and errors (PRD table)', () => {
     await user.clear(screen.getByRole('textbox', {name: 'Leave days'}));
     await user.type(screen.getByRole('textbox', {name: 'Leave days'}), '0');
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    const results = await screen.findByRole('region', {name: 'Your plan'});
+    const results = await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     expect(
       within(results).getByText('No leave used. These are the long weekends you already get.'),
     ).toBeInTheDocument();
@@ -181,12 +185,13 @@ describe('Validation and errors (PRD table)', () => {
   it('pasted lines load and bad lines show their line number and reason', async () => {
     const {calls} = stubApi();
     const {user} = await renderLoaded();
-    await user.click(screen.getByRole('button', {name: /Paste a list/}));
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
+    await user.click(screen.getByRole('radio', {name: 'Paste a list'}));
     await user.type(
-      screen.getByRole('textbox', {name: 'Paste holidays'}),
+      screen.getByRole('textbox', {name: /One holiday per line/}),
       '2027-11-15 Fixture Company Day',
     );
-    await user.click(screen.getByRole('button', {name: 'Add pasted lines'}));
+    await user.click(screen.getByRole('button', {name: 'Load holidays'}));
     expect(await screen.findByRole('checkbox', {name: /Fixture Company Day/})).toBeChecked();
     expect(screen.getByText(/Line 2: 2027-02-30 is not a real date\./)).toBeInTheDocument();
     expect(calls.find((c) => c.url === '/api/holidays/parse')?.body).toEqual({
@@ -200,6 +205,7 @@ describe('Validation and errors (PRD table)', () => {
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('radio', {name: '2026'}));
     expect(await screen.findByText(/No official list for 2026 is bundled/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', {name: 'Add one'}));
     expect(screen.getByRole('button', {name: 'Add holiday'})).toBeInTheDocument();
   });
 
@@ -227,7 +233,7 @@ describe('Accessibility (axe)', () => {
     stubApi();
     const {user, view} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     await expectNoAxeViolations(view.container);
   });
 });

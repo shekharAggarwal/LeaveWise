@@ -18,3 +18,7 @@ hmm looks good to me now implement this UI
 
 Palette question ("Your brief says UI theme: Stone and one theme with its palette unchanged, but the design uses an
 indigo accent Stone doesn't have"), owner's answer: Indigo custom theme
+
+## 2026-10-10 (after the first redesign build)
+
+nothing is matching we built in artifact so can you do only light theme work and match the UI end to end

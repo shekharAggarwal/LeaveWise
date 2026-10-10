@@ -9,6 +9,7 @@ import '@fontsource/figtree/latin-600.css';
 import '@fontsource/figtree/latin-700.css';
 import '@fontsource/montserrat/latin-600.css';
 import '@fontsource/montserrat/latin-700.css';
+import '@fontsource/montserrat/latin-800.css';
 import './index.css';
 import {App} from './App';
 

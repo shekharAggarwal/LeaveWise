@@ -63,3 +63,11 @@ custom theme (docs/ai/REVIEW_LOG.md, 2026-10-10). So:
 - Contrast of the new accent is checked by the real-browser axe run in light and dark (`npm run check:browser`).
 - Calendar day colours stay on Stone's categorical tokens (orange for holidays, muted for weekly offs) and the new
   accent for leave days, always with a letter code, so colour is never the only signal.
+
+### Second amendment (2026-10-10): light only, the canvas as the spec
+
+After the first build the owner wrote "nothing is matching we built in artifact so can you do only light theme work
+and match the UI end to end" (docs/ai/REVIEW_LOG.md). So the app renders in light mode only (`<Theme mode="light">`;
+this overrides the brief's "works in light and dark mode"), and the canvas's palette and component shapes go into
+`leavewise.source.ts` as tokens and component overrides, so components stay free of raw colours. The theme's dark
+values are used only by the summary card, which is a nested dark `<Theme>`, and are set to that card's canvas colours.

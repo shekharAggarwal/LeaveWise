@@ -1,7 +1,7 @@
 // Real-browser checks that jsdom can't do, run against a running LeaveWise server (the jar serving
 // the built page): no horizontal overflow at 360 px, no CSP violations or console errors, touch
 // targets of at least 24 px (WCAG 2.2 2.5.8), axe WCAG 2.2 AA including colour contrast, and the
-// plan request's time. Light and dark, phone and desktop widths.
+// plan request's time. Light mode (the only one), phone and desktop widths.
 // Usage: node scripts/browser-check.mjs [base URL, default http://localhost:8080]
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -16,7 +16,11 @@ const SIZES = [
   [360, 800],
   [1280, 900],
 ];
-const SCHEMES = ['light', 'dark'];
+// Light only: the owner dropped dark mode on 2026-10-10 (docs/ai/REVIEW_LOG.md). Each width is checked in two
+// states: the results, and the holiday paste panel (on a phone: the results screen, then the inputs with the
+// holidays sheet open).
+const STAGES = ['results', 'holidays'];
+const PHONE_WIDTH = 799;
 const MIN_TARGET = 24;
 
 // WCAG 2.5.8 "equivalent" exception: the date field itself (a full-size target) opens the same
@@ -26,8 +30,8 @@ const TARGET_EXCEPTIONS = [{label: /calendar/i, reason: 'the date field opens th
 const failures = [];
 const fail = (where, what) => failures.push(`${where}: ${what}`);
 
-/** Plans with the defaults, opens the paste panel and the date picker: every state on one page. */
-async function exercise(page) {
+/** Plans with the defaults, then for the 'holidays' stage opens the paste panel. */
+async function exercise(page, stage, width) {
   await page.goto(BASE);
   const plan = page.getByRole('button', {name: 'Plan my leaves'});
   await plan.waitFor();
@@ -42,9 +46,18 @@ async function exercise(page) {
     page.waitForResponse((r) => r.url().endsWith('/api/plan')),
     plan.click(),
   ]);
-  await page.getByRole('region', {name: 'Your plan'}).waitFor();
+  await page.getByRole('region', {name: /^Your \d{4} plan$/}).waitFor();
   const planMs = Date.now() - started;
-  await page.getByRole('button', {name: /Paste a list/}).click();
+  if (stage === 'holidays') {
+    if (width <= PHONE_WIDTH) {
+      await page.getByRole('button', {name: 'Edit inputs'}).click();
+      await page.getByRole('button', {name: /^Holidays: /}).click();
+    } else {
+      await page.getByRole('button', {name: 'Edit list'}).click();
+    }
+    await page.getByRole('radio', {name: 'Paste a list'}).click();
+    await page.getByRole('textbox', {name: /One holiday per line/}).waitFor();
+  }
   return {planMs, status: response.status()};
 }
 
@@ -52,8 +65,9 @@ const browser = await chromium.launch();
 const timings = [];
 try {
   for (const [width, height] of SIZES) {
-    for (const scheme of SCHEMES) {
-      const where = `${width}px ${scheme}`;
+    for (const stage of STAGES) {
+      const scheme = 'light';
+      const where = `${width}px ${stage}`;
 
       // Pass 1: the real CSP, so violations surface.
       const context = await browser.newContext({viewport: {width, height}, colorScheme: scheme});
@@ -65,7 +79,7 @@ try {
           console.error(`CSP violation: ${e.violatedDirective} ${e.blockedURI}`),
         ),
       );
-      const {planMs, status} = await exercise(page);
+      const {planMs, status} = await exercise(page, stage, width);
       if (status !== 200) fail(where, `POST /api/plan returned ${status}`);
       timings.push(planMs);
 
@@ -111,7 +125,7 @@ try {
         bypassCSP: true,
       });
       const axePage = await axeContext.newPage();
-      await exercise(axePage);
+      await exercise(axePage, stage, width);
       await axePage.addScriptTag({content: AXE});
       const violations = await axePage.evaluate(async () => {
         const result = await window.axe.run(document, {
@@ -140,6 +154,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `Browser check passed at ${SIZES.map(([w]) => `${w}px`).join(' and ')}, light and dark: no overflow, ` +
+  `Browser check passed at ${SIZES.map(([w]) => `${w}px`).join(' and ')}, light mode, results and holiday panel: no overflow, ` +
     'no CSP violations or console errors, touch targets of 24px or more, no axe WCAG 2.2 AA violations.',
 );

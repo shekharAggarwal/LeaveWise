@@ -220,6 +220,16 @@ comment (no Astryx token or component for them). code-reviewer: rounding mismatc
 buttons wait for an in-flight plan, an invalid input no longer switches the break style, stepper and rounding unit
 tests, doc drift fixed; `planSeq` left as is (existing safeguard).
 
+## Canvas match, light only (owner request, 2026-10-10)
+- [x] Decisions recorded (review log, skill, ADR 0008, browser check light only)
+- [x] Theme: canvas palette, radii and component shapes as tokens and overrides; light mode forced
+- [x] Desktop inputs card (header, year, stepper, weekly offs, break-style cards, compact holidays, plan button)
+- [x] Desktop results (dark summary, breaks table with day strips, calendar with legend and day panel)
+- [x] Holidays editor inline under "Edit list" (desktop; the canvas draws no desktop dialog) and a bottom sheet (phone); no-bundled-list state
+- [x] Phone flow: inputs view with sticky plan bar, results view, month calendar, day sheet
+- [x] States from the canvas (0 leaves, no break, errors, planning, inputs changed)
+- [ ] Gate, ui-reviewer and code-reviewer, side-by-side comparison with the canvas, commit and push
+
 ## Laptop phase (ends at STOP 4)
 - [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO
 - [ ] LAPTOP: run the app locally, check every screen at phone and desktop widths, fix, save screenshots

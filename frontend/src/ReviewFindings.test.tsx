@@ -27,12 +27,13 @@ describe('stale state and races (code review 1 to 4)', () => {
     const paste = deferred();
     stubApi({'POST /api/holidays/parse': () => paste.promise});
     const {user} = await renderLoaded();
-    await user.click(screen.getByRole('button', {name: /Paste a list/}));
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
+    await user.click(screen.getByRole('radio', {name: 'Paste a list'}));
     await user.type(
-      screen.getByRole('textbox', {name: 'Paste holidays'}),
+      screen.getByRole('textbox', {name: /One holiday per line/}),
       '2027-11-15 Fixture Company Day',
     );
-    await user.click(screen.getByRole('button', {name: 'Add pasted lines'}));
+    await user.click(screen.getByRole('button', {name: 'Load holidays'}));
     await user.click(screen.getByRole('radio', {name: '2026'}));
     await screen.findByText(/No official list for 2026 is bundled/);
 
@@ -63,12 +64,12 @@ describe('stale state and races (code review 1 to 4)', () => {
     });
     const {user, view} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     await user.click(screen.getByRole('radio', {name: '2026'}));
     await screen.findByText(/No official list for 2026 is bundled/);
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
     await waitFor(() =>
-      expect(screen.getByRole('heading', {name: '2026 calendar'})).toBeInTheDocument(),
+      expect(screen.getByRole('heading', {name: '2026 at a glance'})).toBeInTheDocument(),
     );
     const dayButtons = [...view.container.querySelectorAll('button[aria-label]')].filter((b) =>
       /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{1,2} [A-Z][a-z]{2}/.test(
@@ -132,7 +133,7 @@ describe('stale state and races (code review 1 to 4)', () => {
     stubApi();
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    const results = await screen.findByRole('region', {name: 'Your plan'});
+    const results = await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     expect(within(results).queryByText(/Inputs changed/)).toBeNull();
     await user.click(screen.getByRole('radio', {name: /Big trips/}));
     expect(
@@ -146,7 +147,7 @@ describe('focus and keyboard (reviews: focus after planning, roving tabindex)', 
     stubApi();
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    const results = await screen.findByRole('region', {name: 'Your plan'});
+    const results = await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     await waitFor(() => expect(results).toHaveFocus());
   });
 
@@ -154,7 +155,7 @@ describe('focus and keyboard (reviews: focus after planning, roving tabindex)', 
     stubApi();
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     const first = screen.getByRole('button', {name: /^Fri, 1 Jan: /});
     first.focus();
     await user.keyboard('{ArrowRight}');
@@ -235,6 +236,7 @@ describe('adding one holiday', () => {
   it('needs a name, merges a second name into an existing date and ticks it', async () => {
     const {calls} = stubApi();
     const {user} = await renderLoaded();
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
     await user.click(screen.getByRole('button', {name: 'Add holiday'}));
     expect(screen.getByText('Give each holiday a name.')).toBeInTheDocument();
     expect(screen.getByText('Pick a date in 2027.')).toBeInTheDocument();
@@ -252,7 +254,7 @@ describe('adding one holiday', () => {
     expect(row).toBeChecked();
 
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     const sent = (planCalls(calls)[0]?.body as PlanRequest).holidays;
     expect(sent).toContainEqual({date: '2027-03-04', name: 'Fixture Holiday 2'});
     expect(sent).toContainEqual({date: '2027-03-04', name: 'Fixture Company Day'});
@@ -275,7 +277,7 @@ describe('.ics download (code review 6)', () => {
     render(<App />);
     await screen.findByRole('checkbox', {name: /Fixture Holiday 1/});
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await user.click(await screen.findByRole('button', {name: 'Download calendar file (.ics)'}));
+    await user.click(await screen.findByRole('button', {name: 'Add to calendar (.ics)'}));
     await waitFor(() => expect(clicked).toEqual(['leavewise-2027.ics']));
     expect(create).toHaveBeenCalledTimes(1);
     expect(revoke).not.toHaveBeenCalled();

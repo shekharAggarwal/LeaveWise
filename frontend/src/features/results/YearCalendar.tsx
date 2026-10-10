@@ -1,101 +1,80 @@
-import {useMemo, useRef, useState, type KeyboardEvent} from 'react';
+import {useMemo, useRef, useState, type KeyboardEvent, type Ref} from 'react';
 import * as stylex from '@stylexjs/stylex';
+import {Card} from '@astryxdesign/core/Card';
 import {Grid} from '@astryxdesign/core/Grid';
-import {Heading, Text} from '@astryxdesign/core/Text';
 import {HStack, VStack} from '@astryxdesign/core/Layout';
+import {Heading, Text} from '@astryxdesign/core/Text';
 import {
   colorVars,
   focusVars,
   fontWeightVars,
-  radiusVars,
-  sizeVars,
   spacingVars,
   textSizeVars,
 } from '@astryxdesign/core/theme/tokens.stylex';
 import type {CalendarDay, IsoDate, PlanResponse} from '../../api/types';
 import {dayOfMonth, monthName, monthOf, weekdayIndex} from '../../lib/dates';
-import {describeDay} from './describeDay';
+import {addDays, kindStyles} from '../shared/dayCodes';
+import {DaySquare} from '../shared/days';
+import {dayCode, dayDetail, describeDay} from './describeDay';
 
 const WEEKDAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 /**
- * Short visible code per kind; colour is never the only signal (PRD, Year calendar). The letter is a
- * symbol keyed by the legend, drawn as generated content like an icon, so a day button's text is
- * just its day number, which its spoken name ("Sun, 3 Jan: weekly off") contains (WCAG 2.5.3).
+ * The day's letter, drawn as generated content like an icon: colour is never the only signal (PRD), and the
+ * button's text stays its day number, which its spoken name contains (WCAG 2.5.3).
  */
 const codeStyles = stylex.create({
-  LEAVE: {'::after': {content: '"L"'}},
-  HOLIDAY: {'::after': {content: '"H"'}},
-  WEEKLY_OFF: {'::after': {content: '"W"'}},
+  L: {'::after': {content: '"L"'}},
+  H: {'::after': {content: '"H"'}},
+  W: {'::after': {content: '"W"'}},
 });
 
-const styles = stylex.create({
+const cellStyles = stylex.create({
   cell: {
     appearance: 'none',
     borderStyle: 'solid',
     borderWidth: spacingVars['--spacing-0-5'],
     borderColor: 'transparent',
-    borderRadius: radiusVars['--radius-inner'],
     backgroundColor: 'transparent',
     color: colorVars['--color-text-primary'],
     cursor: 'pointer',
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: sizeVars['--size-element-lg'],
     padding: 0,
     fontFamily: 'inherit',
-    fontSize: textSizeVars['--font-size-sm'],
+    boxSizing: 'border-box',
     outline: {
       default: 'none',
       ':focus-visible': `${focusVars['--focus-outline-width']} ${focusVars['--focus-outline-style']} ${focusVars['--focus-outline-color']}`,
     },
     outlineOffset: focusVars['--focus-outline-offset'],
   },
-  leave: {
-    backgroundColor: colorVars['--color-accent'],
-    color: colorVars['--color-on-accent'],
+  // Desktop: 28 px cells, number and letter side by side.
+  small: {
+    height: spacingVars['--spacing-7'],
+    gap: '1px',
+    borderRadius: '6px',
+    fontSize: textSizeVars['--font-size-sm'],
   },
-  holiday: {
-    backgroundColor: colorVars['--color-background-orange'],
-    color: colorVars['--color-text-orange'],
-  },
-  weeklyOff: {
-    backgroundColor: colorVars['--color-background-muted'],
-    color: colorVars['--color-text-secondary'],
-  },
-  inBreak: {
-    borderColor: colorVars['--color-accent'],
-  },
-  freeWeekend: {
-    borderColor: colorVars['--color-border-emphasized'],
-    borderStyle: 'dashed',
-  },
-  past: {
-    // Readable (secondary, not disabled): these days are still focusable and describable.
-    color: colorVars['--color-text-secondary'],
-    backgroundColor: colorVars['--color-background-body'],
-  },
-  selected: {
-    boxShadow: `0 0 0 ${spacingVars['--spacing-0-5']} ${colorVars['--color-text-primary']}`,
+  // Phone: 44 px touch targets, the letter under the number (canvas).
+  large: {
+    height: spacingVars['--spacing-11'],
+    flexDirection: 'column',
+    borderRadius: '10px',
+    fontSize: textSizeVars['--font-size-base'],
+    lineHeight: 1.1,
   },
   code: {
-    fontSize: textSizeVars['--font-size-sm'],
-    fontWeight: fontWeightVars['--font-weight-semibold'],
+    fontSize: textSizeVars['--font-size-xs'],
+    fontWeight: fontWeightVars['--font-weight-bold'],
   },
-  legendSwatch: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: sizeVars['--size-element-sm'],
-    height: sizeVars['--size-element-sm'],
-    borderRadius: radiusVars['--radius-inner'],
-    borderStyle: 'solid',
-    borderWidth: spacingVars['--spacing-0-5'],
-    borderColor: 'transparent',
-    fontSize: textSizeVars['--font-size-sm'],
-    fontWeight: fontWeightVars['--font-weight-semibold'],
+  kind: {fontWeight: fontWeightVars['--font-weight-semibold']},
+  inBreak: {borderColor: colorVars['--color-accent']},
+  freeWeekend: {borderColor: colorVars['--color-border-emphasized'], borderStyle: 'dashed'},
+  past: {color: colorVars['--color-text-secondary'], opacity: 0.75},
+  selected: {
+    boxShadow: `0 0 0 ${spacingVars['--spacing-0-5']} ${colorVars['--color-text-primary']}`,
   },
   // A month's first day starts in its weekday column, so no empty placeholder cells are needed.
   start1: {gridColumnStart: 1},
@@ -108,20 +87,125 @@ const styles = stylex.create({
 });
 
 const COLUMN_START = [
-  styles.start1,
-  styles.start2,
-  styles.start3,
-  styles.start4,
-  styles.start5,
-  styles.start6,
-  styles.start7,
+  cellStyles.start1,
+  cellStyles.start2,
+  cellStyles.start3,
+  cellStyles.start4,
+  cellStyles.start5,
+  cellStyles.start6,
+  cellStyles.start7,
 ];
 
-function addDays(date: IsoDate, n: number): IsoDate {
-  const [y, m, d] = date.split('-').map(Number);
-  return new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, (d ?? 1) + n)).toISOString().slice(0, 10);
+const styles = stylex.create({
+  panel: {
+    borderRadius: '14px',
+    backgroundColor: colorVars['--color-accent-muted'],
+    paddingBlock: spacingVars['--spacing-3'],
+    paddingInline: spacingVars['--spacing-4'],
+  },
+  legend: {
+    margin: 0,
+    padding: 0,
+    listStyle: 'none',
+  },
+});
+
+interface DayButtonProps {
+  day: CalendarDay;
+  plan: PlanResponse;
+  size: 'small' | 'large';
+  isFirstOfMonth: boolean;
+  isSelected: boolean;
+  isTabStop: boolean;
+  buttonRef: Ref<HTMLButtonElement>;
+  onSelect: () => void;
+  onKeyDown?: (event: KeyboardEvent) => void;
 }
 
+/** One calendar day: colour, letter and spoken name (raw button: no Astryx component is a calendar cell). */
+export function DayButton({
+  day,
+  plan,
+  size,
+  isFirstOfMonth,
+  isSelected,
+  isTabStop,
+  buttonRef,
+  onSelect,
+  onKeyDown,
+}: DayButtonProps) {
+  const code = dayCode(day);
+  return (
+    <button
+      type="button"
+      ref={buttonRef}
+      tabIndex={isTabStop ? 0 : -1}
+      aria-label={describeDay(day, plan)}
+      onClick={onSelect}
+      onKeyDown={onKeyDown}
+      {...stylex.props(
+        cellStyles.cell,
+        size === 'small' ? cellStyles.small : cellStyles.large,
+        code !== null && kindStyles[code],
+        code !== null && cellStyles.kind,
+        day.breakIndex !== null && cellStyles.inBreak,
+        day.freeLongWeekendIndex !== null && cellStyles.freeWeekend,
+        !day.planned && cellStyles.past,
+        isSelected && cellStyles.selected,
+        isFirstOfMonth && COLUMN_START[weekdayIndex(day.date)],
+      )}
+    >
+      <span aria-hidden="true">{dayOfMonth(day.date)}</span>
+      {code !== null && (
+        <span aria-hidden="true" {...stylex.props(cellStyles.code, codeStyles[code])} />
+      )}
+    </button>
+  );
+}
+
+/** The legend: every colour with its letter and its word (PRD: never colour alone). */
+export function Legend({plan}: {plan: PlanResponse}) {
+  const items: {code: 'L' | 'H' | 'W' | 'outline' | 'dashed'; label: string}[] = [
+    {code: 'L', label: 'Leave'},
+    {code: 'H', label: 'Holiday'},
+    {code: 'W', label: 'Weekly off'},
+    {code: 'outline', label: 'In a break'},
+  ];
+  if (plan.freeLongWeekends.length > 0 && plan.breaks.length === 0) {
+    items.push({code: 'dashed', label: 'Free long weekend'});
+  }
+  return (
+    <HStack as="ul" gap={3} wrap="wrap" xstyle={styles.legend} aria-label="Legend">
+      {items.map((item) => (
+        <HStack as="li" key={item.label} gap={1.5} vAlign="center">
+          <DaySquare code={item.code} size="sm" />
+          <Text type="small" color="secondary">
+            {item.label}
+          </Text>
+        </HStack>
+      ))}
+    </HStack>
+  );
+}
+
+/** What a tapped day is (canvas panel); announced politely when it changes. */
+export function DayPanel({day, plan}: {day: CalendarDay | undefined; plan: PlanResponse}) {
+  const detail = day ? dayDetail(day, plan) : null;
+  const code = day ? dayCode(day) : null;
+  return (
+    <HStack gap={3} vAlign="center" xstyle={styles.panel} role="status" aria-live="polite">
+      {code && <DaySquare code={code} size="md" />}
+      <VStack gap={0.5}>
+        <Text weight="bold">{detail ? detail.title : 'Tap a day to see what it is.'}</Text>
+        <Text type="small" color="secondary">
+          {detail ? detail.detail : 'Arrow keys move between days.'}
+        </Text>
+      </VStack>
+    </HStack>
+  );
+}
+
+/** Desktop: all 12 months at a glance, with the legend and the tapped-day panel (canvas). */
 export function YearCalendar({plan}: {plan: PlanResponse}) {
   const byDate = useMemo(() => new Map(plan.days.map((d) => [d.date, d])), [plan.days]);
   const firstPlanned = plan.days.find((d) => d.planned)?.date ?? plan.days[0]?.date ?? '';
@@ -136,12 +220,7 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
   }, [plan.days]);
 
   const move = (event: KeyboardEvent, from: IsoDate) => {
-    const step: Record<string, number> = {
-      ArrowLeft: -1,
-      ArrowRight: 1,
-      ArrowUp: -7,
-      ArrowDown: 7,
-    };
+    const step: Record<string, number> = {ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7};
     let target: IsoDate | undefined;
     if (event.key in step) target = addDays(from, step[event.key] ?? 0);
     if (event.key === 'Home') target = plan.days[0]?.date;
@@ -152,94 +231,56 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
     buttons.current.get(target)?.focus();
   };
 
-  const selectedDay = selected ? byDate.get(selected) : undefined;
   // Exactly one day is always reachable with Tab, even if the remembered one isn't in this plan.
   const tabStop = byDate.has(focused) ? focused : firstPlanned;
 
   return (
-    <VStack gap={4}>
-      <VStack gap={2}>
-        <Heading level={3}>{plan.year} calendar</Heading>
-        <HStack gap={3} wrap="wrap">
-          <Legend code="L" label="Leave day" xstyle={styles.leave} />
-          <Legend code="H" label="Holiday" xstyle={styles.holiday} />
-          <Legend code="W" label="Weekly off" xstyle={styles.weeklyOff} />
-          <Legend code="" label="Break (outlined)" xstyle={styles.inBreak} />
-          <Legend code="" label="Free long weekend (dashed)" xstyle={styles.freeWeekend} />
+    <Card>
+      <VStack gap={5}>
+        <HStack gap={4} wrap="wrap" vAlign="center" justify="between">
+          <Heading level={2} type="card">
+            {plan.year} at a glance
+          </Heading>
+          <Legend plan={plan} />
         </HStack>
-        <Text type="supporting" color="secondary">
-          Tap a day to see what it is. Arrow keys move between days.
-        </Text>
-        <p role="status" aria-live="polite">
-          <Text type="body" weight="medium">
-            {selectedDay ? describeDay(selectedDay, plan) : ''}
-          </Text>
-        </p>
-      </VStack>
-      <Grid columns={{minWidth: 230}} gap={5}>
-        {months.map((days, index) => (
-          <VStack key={index} gap={1}>
-            <Heading level={4}>{monthName(index + 1)}</Heading>
-            <Grid columns={7} gap={0.5}>
-              {WEEKDAY_LETTERS.map((letter, i) => (
-                <Text key={`h${i}`} type="supporting" color="secondary" justify="center">
-                  <span aria-hidden="true">{letter}</span>
-                </Text>
-              ))}
-              {days.map((day) => {
-                const label = describeDay(day, plan);
-                return (
-                  <button
+        <DayPanel day={selected ? byDate.get(selected) : undefined} plan={plan} />
+        <Grid columns={{minWidth: 210}} rowGap={8} columnGap={6}>
+          {months.map((days, index) => (
+            <VStack key={index} gap={1.5}>
+              <Heading level={3} type="month">
+                {monthName(index + 1)}
+              </Heading>
+              <Grid columns={7} gap={0.5}>
+                {WEEKDAY_LETTERS.map((letter, i) => (
+                  <Text key={`h${i}`} type="supporting" color="secondary" justify="center">
+                    <span aria-hidden="true">{letter}</span>
+                  </Text>
+                ))}
+                {days.map((day) => (
+                  <DayButton
                     key={day.date}
-                    type="button"
-                    ref={(el) => {
+                    day={day}
+                    plan={plan}
+                    size="small"
+                    isFirstOfMonth={day === days[0]}
+                    isSelected={day.date === selected}
+                    isTabStop={day.date === tabStop}
+                    buttonRef={(el) => {
                       if (el) buttons.current.set(day.date, el);
                       else buttons.current.delete(day.date);
                     }}
-                    tabIndex={day.date === tabStop ? 0 : -1}
-                    aria-label={label}
-                    onClick={() => {
+                    onSelect={() => {
                       setSelected(day.date);
                       setFocused(day.date);
                     }}
                     onKeyDown={(e) => move(e, day.date)}
-                    {...stylex.props(
-                      styles.cell,
-                      day.kind === 'LEAVE' && styles.leave,
-                      day.kind === 'HOLIDAY' && styles.holiday,
-                      day.kind === 'WEEKLY_OFF' && styles.weeklyOff,
-                      day.breakIndex !== null && styles.inBreak,
-                      day.freeLongWeekendIndex !== null && styles.freeWeekend,
-                      !day.planned && styles.past,
-                      day.date === selected && styles.selected,
-                      day === days[0] && COLUMN_START[weekdayIndex(day.date)],
-                    )}
-                  >
-                    <span aria-hidden="true">{dayOfMonth(day.date)}</span>
-                    {day.kind !== 'WORKING' && (
-                      <span
-                        aria-hidden="true"
-                        {...stylex.props(styles.code, codeStyles[day.kind])}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </Grid>
-          </VStack>
-        ))}
-      </Grid>
-    </VStack>
-  );
-}
-
-function Legend({code, label, xstyle}: {code: string; label: string; xstyle: stylex.StyleXStyles}) {
-  return (
-    <HStack gap={1} vAlign="center">
-      <span aria-hidden="true" {...stylex.props(styles.legendSwatch, xstyle)}>
-        {code}
-      </span>
-      <Text type="supporting">{label}</Text>
-    </HStack>
+                  />
+                ))}
+              </Grid>
+            </VStack>
+          ))}
+        </Grid>
+      </VStack>
+    </Card>
   );
 }

@@ -82,13 +82,13 @@ describe('PRD edge cases in the results (no UI test before)', () => {
     };
     show(plan, 5);
 
-    expect(
-      screen.getByText('3 leaves → 5 days off across 1 break, 2 leaves unused'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('3 leaves → 5 days off')).toBeInTheDocument();
+    expect(screen.getByText('across 1 break. 2 leaves unused.')).toBeInTheDocument();
     expect(
       screen.getByText('2 leaves left over: every working day is already a leave day.'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Wed, 29 Dec – Sun, 2 Jan 2028 · 5 days off')).toBeInTheDocument();
+    expect(screen.getByText('Wed, 29 Dec – Sun, 2 Jan 2028')).toBeInTheDocument();
+    expect(screen.getByText(/^5 days off · leave /)).toBeInTheDocument();
   });
 
   it('current year on 31 December: the no-days-left note, no download, every day already passed', () => {
@@ -107,7 +107,7 @@ describe('PRD edge cases in the results (no UI test before)', () => {
     show(plan, 5);
 
     expect(screen.getByText('No days left to plan in 2026. Pick 2027.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', {name: /Download calendar file/})).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: /Add to calendar/})).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', {name: 'Thu, 31 Dec: working day, already passed'}),
     ).toBeInTheDocument();
@@ -168,6 +168,7 @@ describe('adding one holiday in the browser', () => {
     render(<App />);
     await screen.findByRole('checkbox', {name: /Fixture Holiday 1/});
 
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
     await user.click(screen.getByRole('textbox', {name: 'Holiday name'}));
     await user.paste('Fixture\tCompany Day');
     await user.click(screen.getByLabelText('Holiday date'));

@@ -6,3 +6,4 @@ CLAUDE.md
 src/theme/leavewise.css
 src/theme/leavewise.js
 src/theme/leavewise.d.ts
+src/theme/leavewise.variants.d.ts

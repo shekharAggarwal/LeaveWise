@@ -19,7 +19,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | API | Spring MockMvc | Contract in `docs/API.md`, PRD error messages word for word, size and rate limits, headers | `backend/src/test/java/dev/leavewise/api` |
 | UI components and flow | Vitest + React Testing Library | The journey: defaults, edit, plan, results, download; empty, loading and error states | `frontend/src/**/*.test.tsx` |
 | Accessibility | axe-core in Vitest | No axe violations on every screen state (contrast checked in a browser, not jsdom) | `frontend/src/test/axe.ts` |
-| Real browser | Playwright Chromium against the jar, in the quality gate | At 360 and 1280 px, light and dark: no overflow, no CSP violations or console errors, 24 px touch targets, axe WCAG 2.2 AA with contrast, plan time | `frontend/scripts/browser-check.mjs` |
+| Real browser | Playwright Chromium against the jar, in the quality gate | At 360 and 1280 px, light mode (the only one since 2026-10-10), results and the holiday paste panel (phone: results screen, then the holidays sheet): no overflow, no CSP violations or console errors, 24 px touch targets, axe WCAG 2.2 AA with contrast, plan time | `frontend/scripts/browser-check.mjs` |
 | Real devices | Manual (laptop, phone) | Real phone layout and touch, fonts, keyboard on a real browser | LAPTOP step, `docs/HUMAN_TODO.md` |
 | Built page vs CSP | Node script in `npm run build` | No inline `<style>`, `style=` or script in `index.html` | `frontend/scripts/check-dist-csp.mjs` |
 | Static checks | ESLint, tsc, Spotless, `astryx doctor`, secret scan | Code and design-system rules, no secrets | `scripts/quality-gate.sh` |
@@ -101,6 +101,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Behaviour | Tests | Status |
 | --- | --- | --- |
 | Leave-day stepper: −/+ by one, 0 to 60, starts from 0 on text that isn't a whole number, clears the error; the field stays a text box named "Leave days" | `Redesign.test#leave-day stepper` (3) | passing |
+| Phone screens (canvas): inputs with holidays row and plan bar, results with Edit inputs, figures, breaks, the one-month calendar with chips | `PhoneFlow.test` (4, matchMedia stubbed to a phone, axe on both screens) | passing |
 | Results panel says what it will hold before the first plan | `Redesign.test#shows what the panel will hold…` (with axe) | passing |
 | Stepper rule (whitespace, leading zeros, decimals, 20 digits, 0 and 60) | `validation.test#stepLeaveDays` (13) | passing |
 | Days off per leave rounds half up like the server | `figures.test#daysOffPerLeave` (5, incl. 43 / 20 = 2.2) | passing |
@@ -119,8 +120,8 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | PRD item | Tests or check | Status |
 | --- | --- | --- |
 | Full-year plan in under 1 second | `PlannerPerformanceTest` (2), `PlanApiTest#fullYearPlanRespondsInUnderOneSecond`; measured 3 to 8 ms in the planner; `scripts/browser-check.mjs`: click to results shown in 101 to 146 ms in Chromium against the jar (two Phase 4 runs) | passing |
-| Works from 360 px wide | Playwright Chromium screenshots at 360 and 1280 px, light and dark, with a horizontal-overflow check (cloud VM, Phase 3); `scripts/browser-check.mjs` in the quality gate (overflow, 24 px touch targets); real-device check is a LAPTOP/owner step | passing in Chromium (phone: LAPTOP) |
-| Contrast, keyboard, colour never the only signal | axe in `App.test` (form and results, no contrast in jsdom); axe WCAG 2.2 AA with colour contrast in Chromium, light and dark, via `scripts/browser-check.mjs` in the quality gate; `Phase4Review.test` (day text inside its spoken name); calendar days carry a text code and a spoken label; roving arrow-key focus | passing (a real phone: LAPTOP) |
+| Works from 360 px wide | Playwright Chromium screenshots at 360 and 1280 px (light and dark until 2026-10-10, light only since), with a horizontal-overflow check (cloud VM, Phase 3); `scripts/browser-check.mjs` in the quality gate (overflow, 24 px touch targets); real-device check is a LAPTOP/owner step | passing in Chromium (phone: LAPTOP) |
+| Contrast, keyboard, colour never the only signal | axe in `App.test` (form and results, no contrast in jsdom); axe WCAG 2.2 AA with colour contrast in Chromium (light mode) via `scripts/browser-check.mjs` in the quality gate; `Phase4Review.test` (day text inside its spoken name); calendar days carry a text code and a spoken label; roving arrow-key focus | passing (a real phone: LAPTOP) |
 | No login, database, tracking cookies; inputs not logged | `PrivacyTest#noResponseSetsACookie`, `#requestInputsNeverAppearInTheLog` (root DEBUG on) | passing |
 | Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `RateLimitFilterTest`, `PathBypassTest` (real server), `SecurityHeadersTest`, `SecurityReviewApiTest` (duplicate JSON keys), `EdgeCaseHunt.test` (browser refuses control characters, as the server does) | passing |
 | The page itself obeys the CSP (`style-src 'self'`, `script-src 'self'`) | `frontend/scripts/check-dist-csp.mjs` inside `npm run build` (no inline `<style>`, `style=` or script; layer and slide-rule stylesheets linked); Playwright Chromium against the jar: 0 CSP violations (Phase 4) | passing |

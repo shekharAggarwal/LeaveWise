@@ -2,3 +2,22 @@
 :root {
   --stylex-injection: 0;
 }
+
+/* Phone: the Plan bar is sticky at the bottom, so a field focused by keyboard scrolls clear of it (WCAG 2.4.11). */
+@media (max-width: 799px) {
+  html {
+    scroll-padding-bottom: 140px;
+  }
+}
+
+/*
+ * The leave-day stepper's number: big and centred (canvas). TextInput exposes no prop or theme variable for its inner
+ * <input>, so this uses Astryx's documented external-CSS surface: the component class plus its data attribute
+ * (`astryx docs styling preferred-selector-surface-data-attributes`). Only the stepper uses size="lg".
+ */
+.astryx-text-input[data-size='lg'] input {
+  font-family: var(--font-family-heading);
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}

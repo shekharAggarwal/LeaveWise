@@ -6,3 +6,7 @@
 export function daysOffPerLeave(days: number, leaves: number): string {
   return (Math.round((days * 10) / leaves) / 10).toFixed(1);
 }
+
+export function plural(n: number, one: string, many: string): string {
+  return `${n} ${n === 1 ? one : many}`;
+}

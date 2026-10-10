@@ -1,5 +1,5 @@
 // Regression tests for the Phase 4 ui-reviewer pass. Each one failed against the code it reviewed.
-import {render, screen} from '@testing-library/react';
+import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
@@ -47,6 +47,7 @@ describe('field errors clear once the field is edited (review 5)', () => {
 
   it('holiday name', async () => {
     const user = await renderLoaded();
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
     await user.click(screen.getByRole('button', {name: 'Add holiday'}));
     expect(screen.getByText('Give each holiday a name.')).toBeInTheDocument();
     await user.type(screen.getByRole('textbox', {name: 'Holiday name'}), 'F');
@@ -55,15 +56,23 @@ describe('field errors clear once the field is edited (review 5)', () => {
 });
 
 describe('stale plan (review 4)', () => {
-  it('says next to the Plan button that the inputs changed', async () => {
+  it('says the inputs changed, and Plan again makes a fresh plan (canvas state)', async () => {
     const user = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
-    expect(screen.queryByText('Your inputs changed since the plan below was made.')).toBeNull();
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
+    expect(
+      screen.queryByText('Inputs changed. Tap Plan my leaves to update this plan.'),
+    ).toBeNull();
     await user.click(screen.getByRole('radio', {name: /Big trips/}));
     expect(
-      screen.getByText('Your inputs changed since the plan below was made.'),
+      screen.getByText('Inputs changed. Tap Plan my leaves to update this plan.'),
     ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', {name: 'Plan again'}));
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Inputs changed. Tap Plan my leaves to update this plan.'),
+      ).toBeNull(),
+    );
   });
 });
 
@@ -71,7 +80,7 @@ describe('calendar days: visible label in the name (browser check, axe label-con
   it("every day button's visible text is part of its spoken name (WCAG 2.5.3)", async () => {
     const user = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByRole('region', {name: 'Your plan'});
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     const days = screen.getAllByRole('button', {name: /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d/});
     expect(days.length).toBeGreaterThan(300);
     const mismatched = days.filter(

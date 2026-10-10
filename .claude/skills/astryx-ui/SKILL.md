@@ -43,7 +43,10 @@ The managed block in `frontend/CLAUDE.md` holds Astryx's own rules; this skill a
 - One primary action per screen. On the planner it is **Plan my leaves** (PRD wording).
 - Real empty, loading and error states; error text from the PRD word for word, saying what to do next.
 - Visible keyboard focus; everything usable by keyboard; respect `prefers-reduced-motion`.
-- Works in light and dark mode, from 360 px wide (PRD: phone first) up to desktop.
+- Light mode only (owner, 2026-10-10: "do only light theme work"; overrides the brief's "works in light and dark").
+  Works from 360 px wide (PRD: phone first) up to desktop.
+- The Claude Design canvas "LeaveWise UI redesign" is the visual spec: colours, sizes, copy, order of inputs, the
+  phone screens and the holidays sheet. Deviate only where the PRD or WCAG requires it, and say so.
 
 ## Product specifics (PRD)
 

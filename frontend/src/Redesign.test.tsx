@@ -81,7 +81,7 @@ describe('results panel', () => {
     stubApi();
     const {user, view} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    const region = await screen.findByRole('region', {name: 'Your plan'});
+    const region = await screen.findByRole('region', {name: /^Your \d{4} plan$/});
     expect(screen.queryByRole('heading', {name: 'Your plan shows here'})).not.toBeInTheDocument();
     const figures = within(region).getByRole('list', {name: 'Plan figures'});
     const items = within(figures)

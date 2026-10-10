@@ -4,7 +4,7 @@ import {PlannerPage} from './features/planner/PlannerPage';
 
 export function App() {
   return (
-    <Theme theme={leavewiseTheme}>
+    <Theme theme={leavewiseTheme} mode="light">
       <PlannerPage />
     </Theme>
   );
