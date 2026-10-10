@@ -75,7 +75,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - Correction (Phase 5, AI failure 18): the dependency step above was ticked before the backend was scanned. The
   first CI run's osv-scanner job found Tomcat 11.0.24 (3 critical) and Jackson 3.1.5 (5 high, 2 medium) in the
   backend. Fixed by overriding `tomcat.version` to 11.0.26 and `jackson-bom.version` to 3.1.7 in `pom.xml`
-  (312 backend tests pass); the step stays ticked only once the CI scan is green.
+  (312 backend tests pass). CI run 2 (commit `18ef5fb`): every job green, the dependency scan included; step re-ticked.
 - For Phase 5 `docs/DEPLOYMENT.md`: the rate limit keys on the client IP that Tomcat takes from `X-Forwarded-For`
   when the peer is a private or loopback address. Safe behind the host's proxy with the app port never exposed;
   if the host's proxy has a public address, set `server.tomcat.remoteip.internal-proxies` to its range.
@@ -108,6 +108,11 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
   is blocked from the VM, so plan prices and the region list are left to the owner (HUMAN_TODO). Env-var overrides
   checked on the image (a burst of 3 gave `200 200 200 429`; a 100-byte limit gave 413). Under a 512 MB memory limit
   the app starts in about 2 s and uses about 150 MB after 50 full-year plans.
+- `scripts/build-submission.sh` on commit `7cea69f`: both secret scans clean, ZIP of 32 commits, 736 KB, no build
+  folders; unzipped, `git status` is clean and no remote is left. Negative test in a throwaway clone: a random
+  GitHub-token-shaped string committed and then deleted was caught in the history scan, and no ZIP was built.
+- Exit check on commit `7cea69f`: quality gate 12 of 12 PASS; `docker build` exit 0 (42 s with cache), the image
+  holds Tomcat 11.0.26 and Jackson 3.1.7, health `UP`, browser check passing against the container.
 
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
@@ -177,7 +182,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 ## Phase 4: Hardening and QA
 - [x] Full security-reviewer pass, fixes
 - [x] Full ui-reviewer pass across every screen, fixes
-- [ ] No high-severity dependency issues (or each explained) (backend fixed after the CI scan; re-tick when CI's scan is green)
+- [x] No high-severity dependency issues (or each explained) (backend patched after the first CI scan; CI run 2 green)
 - [x] edge-case-hunter across the whole app
 - [x] Every PRD acceptance item and edge case has a passing test; docs/QA.md map updated
 - [x] Performance and accessibility checks, fixes
@@ -193,7 +198,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] docs/ai/AI_WORKFLOW.md finished (stages, subagent table, Claude-Session trailer note)
 - [x] docs/DEMO_SCRIPT.md
 - [x] docs/SUBMISSION.md and the secret-scan plus ZIP script
-- [ ] quality-gate passes and Docker image builds, output shown; branch pushed
+- [x] quality-gate passes and Docker image builds, output shown; branch pushed
 - [ ] STOP 3: cloud work summary, LAPTOP steps and human steps in order
 
 ## Laptop phase (ends at STOP 4)
