@@ -1,0 +1,15 @@
+# Only the sources the image build needs; never local builds, dependencies, history or secrets.
+**/node_modules
+**/dist
+**/target
+**/coverage
+.git
+.github
+.claude
+docs
+scripts
+*.zip
+.env
+.env.*
+**/*.pem
+**/*.key

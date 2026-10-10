@@ -1,0 +1,75 @@
+# Every push and pull request: the full quality gate, a dependency vulnerability scan, and the
+# Docker image build. Same script as local runs (scripts/quality-gate.sh), so CI and laptop agree.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --no-fund --no-audit
+      - name: Install Chromium for the browser check
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Quality gate
+        run: scripts/quality-gate.sh
+
+  dependency-scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      # OSV database: backend/pom.xml (with transitive dependencies) and frontend/package-lock.json.
+      - uses: google/osv-scanner-action/osv-scanner-action@v2.6.0
+        with:
+          scan-args: |-
+            --recursive
+            ./
+
+  docker-image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: quality-gate
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: leavewise:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image
+        run: |
+          docker run -d --name leavewise -p 8080:8080 leavewise:ci
+          for _ in $(seq 1 60); do curl -fs http://localhost:8080/actuator/health && break; sleep 1; done
+          curl -fs http://localhost:8080/actuator/health | grep -q '"UP"'
+          curl -fs http://localhost:8080/ | grep -q '<title>LeaveWise</title>'
+          docker rm -f leavewise

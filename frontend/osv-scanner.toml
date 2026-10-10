@@ -1,0 +1,7 @@
+# osv-scanner config for frontend/package-lock.json (CI: .github/workflows/ci.yml).
+# Each ignore has a reason and an expiry, so it is looked at again (docs/ai/PROGRESS.md, Phase 4).
+
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2026-12-31
+reason = "braces stack exhaustion, no fix released; reached only through build and lint tooling (fast-glob in @astryxdesign/build, micromatch in @stylexjs/eslint-plugin) fed the repo's own files, never shipped. npm audit --omit=dev: 0."

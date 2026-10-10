@@ -88,6 +88,17 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
   page without the security headers; problem `instance` echoes the request path to the same caller (JSON only, never
   logged); the rate-limit map sweep can lag briefly under a spray from many IPv6 /64s.
 
+## Phase 5 results (2026-10-10)
+
+- Docker image built in the cloud VM (`docker build` exit 0 in 63 s, image 332 MB): Node 22.22.0 builds the page,
+  Maven 3.9.11 on Temurin 21 builds the jar, and a Temurin 21.0.12.1 JRE runs it as a non-root user. VM-only flags:
+  `--network host --build-arg HTTPS_PROXY=... --secret id=proxy_ca,...` (the agent proxy re-signs TLS; Maven needs
+  a settings.xml proxy, which the Dockerfile writes from `HTTPS_PROXY`). The container: health `UP`, Docker health
+  `healthy`, the page with the strict CSP, a 2027 plan, and `browser-check.mjs` passing against it.
+- CI (`.github/workflows/ci.yml`): quality gate with Chromium, an osv-scanner dependency scan (backend and frontend),
+  and the image build plus a smoke test. Linted with actionlint 1.7.7 (with shellcheck): no findings. It has not run
+  yet: github.com is blocked from the VM, so the first run happens on the next push and is checked at STOP 3.
+
 ## First actions
 - [x] Save the brief word for word to docs/ai/kickoff-prompt.md
 - [x] Create docs/ai/PROGRESS.md
@@ -163,9 +174,9 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] quality-gate passes
 
 ## Phase 5: Delivery prep (ends at STOP 3)
-- [ ] Multi-stage Dockerfile
-- [ ] GitHub Actions CI (quality-gate plus Docker build)
-- [ ] Docker image built in the cloud VM, output shown
+- [x] Multi-stage Dockerfile
+- [x] GitHub Actions CI (quality-gate plus Docker build)
+- [x] Docker image built in the cloud VM, output shown
 - [ ] Host config (default Render, current pricing checked) and docs/DEPLOYMENT.md
 - [ ] README.md (problem, solution, demo link placeholder, quick start, architecture, limitations, dependencies, "For judges" table)
 - [ ] LAPTOP: README screenshots
