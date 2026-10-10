@@ -6,11 +6,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Security headers on every response, errors and static files included (docs/API.md, Conventions).
  */
 class SecurityHeadersFilter extends OncePerRequestFilter {
+
+  private static final UrlPathHelper PATHS = new UrlPathHelper();
 
   static final String CSP =
       "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
@@ -27,7 +30,8 @@ class SecurityHeadersFilter extends OncePerRequestFilter {
     if (request.isSecure()) {
       response.setHeader("Strict-Transport-Security", "max-age=31536000");
     }
-    if (request.getRequestURI().startsWith("/api/")) {
+    // The decoded path without ;parameters, as the container routes it (not the raw URI).
+    if (PATHS.getPathWithinApplication(request).startsWith("/api/")) {
       response.setHeader("Cache-Control", "no-store");
     }
     chain.doFilter(request, response);

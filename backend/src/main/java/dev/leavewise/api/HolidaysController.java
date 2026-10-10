@@ -2,26 +2,21 @@ package dev.leavewise.api;
 
 import dev.leavewise.api.ApiDtos.HolidaysResponse;
 import dev.leavewise.api.ApiDtos.LineErrorDto;
-import dev.leavewise.api.ApiDtos.ParseRequest;
 import dev.leavewise.api.ApiDtos.ParseResponse;
 import dev.leavewise.api.ApiDtos.ParsedHolidayDto;
 import dev.leavewise.holidays.HolidayList;
 import dev.leavewise.holidays.HolidayPasteParser;
 import dev.leavewise.holidays.HolidayRepository;
 import dev.leavewise.planner.HolidayDay;
-import dev.leavewise.planner.PlanRequest;
-import dev.leavewise.planner.PlanningCalendar;
 import java.time.Clock;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.JsonNode;
 
 /** GET /api/holidays and POST /api/holidays/parse (docs/API.md). */
 @RestController
@@ -51,23 +46,28 @@ class HolidaysController {
         list.get().list(),
         list.get().source(),
         REMINDER,
-        PlanMapper.holidays(merged(list.get())));
+        PlanMapper.holidays(HolidayDay.merge(list.get().holidays())));
   }
 
   @PostMapping("/api/holidays/parse")
-  ParseResponse parse(@RequestBody ParseRequest request) {
+  ParseResponse parse(@RequestBody JsonNode body) {
     PlanYears years = PlanYears.now(clock);
-    if (request.year() == null || !years.allows(request.year())) {
-      throw new InvalidInputException("year", years.pickMessage());
+    if (body == null || !body.isObject()) {
+      throw new InvalidInputException("body", "Send the pasted list as a JSON object.");
     }
-    if (request.text() == null) {
+    int year = PlanInputs.requireYear(body.path("year"), years);
+    JsonNode textNode = body.path("text");
+    if (textNode.isMissingNode() || textNode.isNull()) {
       throw new InvalidInputException("text", "Fill in text.");
     }
-    String text = request.text();
+    if (!textNode.isString()) {
+      throw new InvalidInputException("text", "Paste the holiday list as text.");
+    }
+    String text = textNode.stringValue();
     if (text.length() > MAX_PASTE_CHARACTERS) {
       throw new InvalidInputException("text", "Paste at most 50 lines (8,000 characters).");
     }
-    HolidayPasteParser.Result result = HolidayPasteParser.parse(request.year(), text);
+    HolidayPasteParser.Result result = HolidayPasteParser.parse(year, text);
     return new ParseResponse(
         result.holidays().stream()
             .map(h -> new ParsedHolidayDto(h.line(), h.date(), h.name()))
@@ -86,17 +86,5 @@ class HolidaysController {
       // reported below
     }
     throw new InvalidInputException("year", years.pickMessage());
-  }
-
-  /** Same-date entries merged with every name, the way the planner merges them (PRD). */
-  private static List<HolidayDay> merged(HolidayList list) {
-    PlanRequest request =
-        new PlanRequest(
-            list.year(),
-            0,
-            Set.<DayOfWeek>of(),
-            dev.leavewise.planner.BreakStyle.LONG_WEEKENDS,
-            list.holidays());
-    return PlanningCalendar.of(request, LocalDate.of(list.year() - 1, 1, 1)).holidays();
   }
 }

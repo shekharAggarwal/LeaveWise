@@ -14,6 +14,8 @@ public final class HolidayPasteParser {
 
   public static final int MAX_LINES = 50;
   public static final int MAX_NAME_LENGTH = 80;
+  public static final String CONTROL_CHARACTER_MESSAGE =
+      "Holiday names can't contain line breaks or control characters.";
 
   private static final Pattern LINE = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})(?:\\s+(.*))?");
 
@@ -30,6 +32,13 @@ public final class HolidayPasteParser {
       holidays = List.copyOf(holidays);
       errors = List.copyOf(errors);
     }
+  }
+
+  /** True when the text holds a C0 control, DEL or a Unicode line or paragraph separator. */
+  public static boolean hasControlCharacter(String text) {
+    return text.codePoints()
+        .anyMatch(
+            c -> c < 0x20 || c == 0x7F || c == 0x2028 || c == 0x2029 || (c >= 0x80 && c < 0xA0));
   }
 
   /**
@@ -71,7 +80,9 @@ public final class HolidayPasteParser {
       String name = m.group(2) == null ? "" : m.group(2).strip();
       if (name.isEmpty()) {
         errors.add(new LineError(number, "Add a name after the date."));
-      } else if (name.length() > MAX_NAME_LENGTH) {
+      } else if (hasControlCharacter(name)) {
+        errors.add(new LineError(number, CONTROL_CHARACTER_MESSAGE));
+      } else if (name.codePointCount(0, name.length()) > MAX_NAME_LENGTH) {
         errors.add(new LineError(number, "Keep the name to 80 characters or fewer."));
       } else {
         holidays.add(new ParsedHoliday(number, date, name));

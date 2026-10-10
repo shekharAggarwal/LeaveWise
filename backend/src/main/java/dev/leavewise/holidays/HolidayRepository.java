@@ -91,7 +91,7 @@ public final class HolidayRepository {
             requireText(source, "publisher", name),
             requireText(source, "title", name),
             requireOfficialUrl(requireText(source, "url", name), name),
-            requireText(source, "retrievedOn", name));
+            requireIsoDate(requireText(source, "retrievedOn", name), "retrievedOn", name));
     List<Holiday> holidays = new ArrayList<>();
     JsonNode items = root.path("holidays");
     if (!items.isArray()) {
@@ -126,6 +126,16 @@ public final class HolidayRepository {
       throw new IllegalStateException(file + ": \"" + field + "\" must be non-blank text");
     }
     return value.stringValue().strip();
+  }
+
+  private static String requireIsoDate(String text, String field, String file) {
+    try {
+      LocalDate.parse(text);
+      return text;
+    } catch (DateTimeException e) {
+      throw new IllegalStateException(
+          file + ": \"" + field + "\" must be a date like 2026-10-20", e);
+    }
   }
 
   /** ADR 0007: only https addresses on gov.in or nic.in hosts count as an official source. */

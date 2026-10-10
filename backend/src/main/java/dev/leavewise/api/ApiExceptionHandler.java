@@ -4,8 +4,11 @@ import dev.leavewise.web.RequestTooLargeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -57,6 +60,20 @@ class ApiExceptionHandler {
         "method-not-allowed",
         "Method not allowed",
         "Use the method docs/API.md lists.");
+  }
+
+  @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+  ResponseEntity<ProblemDetail> notAcceptable() {
+    // Always answer in problem+json; the client's Accept header is what failed, so it isn't
+    // consulted.
+    return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+        .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+        .body(
+            Problems.of(
+                HttpStatus.NOT_ACCEPTABLE,
+                "not-acceptable",
+                "Not acceptable",
+                "Accept application/json (or text/calendar for the .ics download)."));
   }
 
   @ExceptionHandler(HttpMediaTypeNotSupportedException.class)

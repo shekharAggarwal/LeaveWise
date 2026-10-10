@@ -13,7 +13,7 @@ for fast feedback, and the server checks them again; the server is the authority
 | Weekly offs | `MONDAY` … `SUNDAY` (Java `DayOfWeek` names). Order doesn't matter; a repeated day is collapsed into one. |
 | Break styles | `LONG_WEEKENDS` (3+ days), `SHORT_TRIPS` (5+ days), `BIG_TRIPS` (9+ days). |
 | Request size | Bodies over 32 KB get `413`. |
-| Rate limit | 60 requests per minute per client IP on `/api/**`, with a burst of 20; over it gets `429` and `Retry-After`. |
+| Rate limit | 60 requests per minute per client on `/api/**`, with a burst of 20; over it gets `429` and `Retry-After` (whole seconds until a request is allowed). A client is an IPv4 address or an IPv6 /64 prefix. The limits apply to every path the server routes to the API, however it is spelled (`/%61pi/...`, `/api;x/...`). |
 | Errors | RFC 9457 `application/problem+json`, described at the end. |
 | Headers on every response | `Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, `Strict-Transport-Security: max-age=31536000` (HTTPS only), `Cache-Control: no-store` on `/api/**`. |
 
@@ -102,7 +102,8 @@ Response `200`:
 | Not a real date | `{text} is not a real date.` |
 | Date outside the chosen year | `{date} is not in {year}.` |
 | No name after the date | `Add a name after the date.` |
-| Name over 80 characters | `Keep the name to 80 characters or fewer.` |
+| Name over 80 characters (counted as characters, so an emoji is one) | `Keep the name to 80 characters or fewer.` |
+| Name with a control character | `Holiday names can't contain line breaks or control characters.` |
 | Line 51 or later | `Only 50 lines can be pasted. This line was not loaded.` |
 
 ## `POST /api/plan`
@@ -207,7 +208,10 @@ Same request body as `/api/plan`. Returns `200` with `Content-Type: text/calenda
   events instead of duplicating them. `DTSTAMP` (required by RFC 5545) is the download time in UTC, so two downloads
   differ only in that line.
 - CRLF line endings, lines folded at 75 octets, text escaped per RFC 5545 section 3.3.11.
-- With no breaks, the file is still valid and has no events.
+- With no breaks, the file has the calendar headers and no events (most calendar apps import it as empty;
+  RFC 5545 strictly asks for at least one component, a trade-off accepted to keep "no breaks" honest).
+- Text from users is escaped: every line break form becomes `\n` and other control characters are dropped, so a
+  holiday name can never start a new line in the file.
 
 ## Nice to have (deferred)
 
@@ -222,11 +226,14 @@ shape, so they can be added without breaking the contract:
 
 ## `GET /actuator/health`
 
-`200 {"status":"UP"}` for the host's health check. No other actuator endpoint is exposed.
+`200 {"status":"UP"}` for the host's health check (exactly that body; Kubernetes probe groups are off). No other
+actuator endpoint is exposed, and the endpoint is not rate limited.
 
 ## Errors
 
-Every error is `application/problem+json`. `detail` is the message to show; `errors` lists each field problem.
+Every error is `application/problem+json`. `detail` is the message to show; `errors` lists each field problem;
+`instance` (added by Spring) is the request path. Known exception: a URL with a malformed percent-escape such as
+`/api/%zz` is refused by the servlet container with its own plain 400 page before the app sees it.
 
 ```json
 {
@@ -244,15 +251,17 @@ Every error is `application/problem+json`. `detail` is the message to show; `err
 | All seven days are weekly offs | 400 | `invalid-input` | `Keep at least one working day in the week.` (PRD) |
 | `year` not the current or next year | 400 | `invalid-input` | `Pick {current} or {next}.` |
 | `breakStyle` missing or unknown | 400 | `invalid-input` | `Pick a break style: Long weekends, Short trips or Big trips.` |
-| A holiday date outside the year, or a bad name | 400 | `invalid-input` | `Holiday {date} is not in {year}.` / `Keep holiday names to 80 characters or fewer.` |
+| A holiday date missing, malformed or outside the year | 400 | `invalid-input` | `Fill in the holiday date.` / `Write holiday dates like {year}-01-26.` / `Holiday {date} is not in {year}.` |
+| A holiday name blank, too long, or with line breaks or control characters | 400 | `invalid-input` | `Give each holiday a name.` / `Keep holiday names to 80 characters or fewer.` / `Holiday names can't contain line breaks or control characters.` |
 | More than 100 holidays | 400 | `invalid-input` | `Use at most 100 holidays.` |
 | A required field missing or `null`, or a weekly off that isn't a day name | 400 | `invalid-input` | `Fill in {field}.` / `Weekly offs must be day names, like SATURDAY.` |
-| Pasted `text` over 8,000 characters | 400 | `invalid-input` | `Paste at most 50 lines (8,000 characters).` |
+| Pasted `text` over 8,000 characters, or not text | 400 | `invalid-input` | `Paste at most 50 lines (8,000 characters).` / `Paste the holiday list as text.` |
 | Body is not valid JSON | 400 | `unreadable` | `The request could not be read. Reload the page and try again.` |
 | Body over 32 KB | 413 | `too-large` | `The request is too large. Paste at most 50 holiday lines.` |
 | Rate limit reached | 429 | `rate-limited` | `Too many requests. Wait a minute and try again.` |
 | Unknown path under `/api` | 404 | `not-found` | `There is nothing here.` |
 | Wrong HTTP method | 405 | `method-not-allowed` | `Use the method docs/API.md lists.` |
+| `Accept` header the endpoint can't answer | 406 | `not-acceptable` | `Accept application/json (or text/calendar for the .ics download).` |
 | Body not sent as JSON | 415 | `unsupported-media-type` | `Send JSON with Content-Type: application/json.` |
 | Unexpected server error | 500 | `internal` | `Something went wrong on our side. Try again.` (details go to the server log without inputs) |
 

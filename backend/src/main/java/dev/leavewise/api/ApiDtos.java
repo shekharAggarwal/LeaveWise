@@ -40,8 +40,6 @@ final class ApiDtos {
       String reminder,
       List<HolidayDayDto> holidays) {}
 
-  record ParseRequest(Integer year, String text) {}
-
   record ParsedHolidayDto(int line, LocalDate date, String name) {}
 
   record LineErrorDto(int line, String reason) {}

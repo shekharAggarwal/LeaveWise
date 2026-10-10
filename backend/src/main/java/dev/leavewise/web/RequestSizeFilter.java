@@ -13,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Refuses API request bodies over the limit with 413: up front from Content-Length, and while
- * reading when the length isn't declared (chunked uploads).
+ * reading when the length isn't declared (chunked uploads). Registered for {@code /api/*}.
  */
 class RequestSizeFilter extends OncePerRequestFilter {
 
@@ -23,11 +23,6 @@ class RequestSizeFilter extends OncePerRequestFilter {
   RequestSizeFilter(long maxBytes, ProblemWriter problems) {
     this.maxBytes = maxBytes;
     this.problems = problems;
-  }
-
-  @Override
-  protected boolean shouldNotFilter(HttpServletRequest request) {
-    return !request.getRequestURI().startsWith("/api/");
   }
 
   @Override
@@ -56,6 +51,12 @@ class RequestSizeFilter extends OncePerRequestFilter {
         stream = new LimitedStream(super.getInputStream(), maxBytes);
       }
       return stream;
+    }
+
+    @Override
+    public java.io.BufferedReader getReader() throws IOException {
+      String encoding = getCharacterEncoding() == null ? "UTF-8" : getCharacterEncoding();
+      return new java.io.BufferedReader(new java.io.InputStreamReader(getInputStream(), encoding));
     }
   }
 

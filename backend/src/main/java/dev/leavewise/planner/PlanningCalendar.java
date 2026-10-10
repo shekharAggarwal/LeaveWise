@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * The days the planner works on (ADR 0006).
@@ -93,12 +92,8 @@ public final class PlanningCalendar {
   }
 
   private static Map<LocalDate, HolidayDay> mergeHolidays(List<Holiday> holidays) {
-    Map<LocalDate, TreeSet<String>> names = new TreeMap<>();
-    for (Holiday h : holidays) {
-      names.computeIfAbsent(h.date(), d -> new TreeSet<>()).add(h.name());
-    }
     Map<LocalDate, HolidayDay> merged = new TreeMap<>();
-    names.forEach((date, n) -> merged.put(date, new HolidayDay(date, List.copyOf(n))));
+    HolidayDay.merge(holidays).forEach(day -> merged.put(day.date(), day));
     return merged;
   }
 

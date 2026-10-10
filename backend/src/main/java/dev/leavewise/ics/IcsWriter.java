@@ -73,13 +73,15 @@ public final class IcsWriter {
     return String.join("\n", parts);
   }
 
-  /** RFC 5545 section 3.3.11: escape backslash, semicolon, comma and newlines in TEXT values. */
+  /**
+   * RFC 5545 section 3.3.11: escape backslash, semicolon and comma; every line break form becomes
+   * {@code \n}; a tab becomes a space and other control characters are dropped, so user text can
+   * never start a new content line (code review, Phase 3).
+   */
   static String escape(String text) {
-    return text.replace("\\", "\\\\")
-        .replace(";", "\\;")
-        .replace(",", "\\,")
-        .replace("\r\n", "\\n")
-        .replace("\n", "\\n");
+    String escaped =
+        text.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\t", " ");
+    return escaped.replaceAll("\\R", "\\\\n").replaceAll("\\p{Cntrl}", "");
   }
 
   /** RFC 5545 section 3.1: lines of at most 75 octets; continuation lines start with a space. */

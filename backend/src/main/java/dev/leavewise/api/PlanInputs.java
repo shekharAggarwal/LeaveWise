@@ -1,5 +1,6 @@
 package dev.leavewise.api;
 
+import dev.leavewise.holidays.HolidayPasteParser;
 import dev.leavewise.planner.BreakStyle;
 import dev.leavewise.planner.Holiday;
 import dev.leavewise.planner.PlanRequest;
@@ -25,6 +26,8 @@ final class PlanInputs {
   static final String WEEKLY_OFFS_MESSAGE = "Weekly offs must be day names, like SATURDAY.";
   static final String NAME_LENGTH_MESSAGE = "Keep holiday names to 80 characters or fewer.";
   static final int MAX_HOLIDAYS = 100;
+  private static final java.util.regex.Pattern ISO_DATE =
+      java.util.regex.Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
   static final int MAX_NAME_LENGTH = 80;
 
   private PlanInputs() {}
@@ -38,14 +41,11 @@ final class PlanInputs {
     }
     List<FieldProblem> problems = new ArrayList<>();
 
-    JsonNode yearNode = body.path("year");
     int year = 0;
-    if (yearNode.isMissingNode() || yearNode.isNull()) {
-      problems.add(new FieldProblem("year", "Fill in year."));
-    } else if (!isInt(yearNode) || !years.allows(yearNode.intValue())) {
-      problems.add(new FieldProblem("year", years.pickMessage()));
-    } else {
-      year = yearNode.intValue();
+    try {
+      year = requireYear(body.path("year"), years);
+    } catch (InvalidInputException e) {
+      problems.addAll(e.problems());
     }
 
     JsonNode leaveNode = body.path("leaveDays");
@@ -114,29 +114,68 @@ final class PlanInputs {
     return new PlanRequest(year, leaveDays, weeklyOffs, breakStyle, holidays);
   }
 
+  /**
+   * The {@code year} field of any request: a whole number, the current or next year.
+   *
+   * @throws InvalidInputException with "Fill in year." or the "Pick ... or ..." message
+   */
+  static int requireYear(JsonNode yearNode, PlanYears years) {
+    if (yearNode.isMissingNode() || yearNode.isNull()) {
+      throw new InvalidInputException("year", "Fill in year.");
+    }
+    if (!isInt(yearNode) || !years.allows(yearNode.intValue())) {
+      throw new InvalidInputException("year", years.pickMessage());
+    }
+    return yearNode.intValue();
+  }
+
   private static Holiday holidayOf(
       JsonNode item, String field, int year, List<FieldProblem> problems) {
     JsonNode dateNode = item.path("date");
-    String dateText = dateNode.isString() ? dateNode.stringValue() : dateNode.toString();
-    LocalDate date = null;
+    if (!dateNode.isString() || dateNode.stringValue().isBlank()) {
+      problems.add(new FieldProblem(field + ".date", "Fill in the holiday date."));
+      return null;
+    }
+    String dateText = dateNode.stringValue().strip();
+    LocalDate date;
     try {
-      date = dateNode.isString() ? LocalDate.parse(dateText) : null;
+      date = ISO_DATE.matcher(dateText).matches() ? LocalDate.parse(dateText) : null;
     } catch (DateTimeException e) {
       date = null;
     }
-    if (date == null || (year != 0 && date.getYear() != year)) {
-      String shown = year == 0 ? "the chosen year" : String.valueOf(year);
+    int exampleYear = year == 0 ? LocalDate.now().getYear() : year;
+    if (date == null) {
       problems.add(
-          new FieldProblem(field + ".date", "Holiday " + dateText + " is not in " + shown + "."));
+          new FieldProblem(field + ".date", "Write holiday dates like " + exampleYear + "-01-26."));
+      return null;
+    }
+    if (year != 0 && date.getYear() != year) {
+      problems.add(
+          new FieldProblem(field + ".date", "Holiday " + date + " is not in " + year + "."));
       return null;
     }
     JsonNode nameNode = item.path("name");
     String name = nameNode.isString() ? nameNode.stringValue().strip() : "";
-    if (name.isEmpty() || name.length() > MAX_NAME_LENGTH) {
-      problems.add(new FieldProblem(field + ".name", NAME_LENGTH_MESSAGE));
+    String nameProblem = nameProblem(name);
+    if (nameProblem != null) {
+      problems.add(new FieldProblem(field + ".name", nameProblem));
       return null;
     }
     return new Holiday(date, name);
+  }
+
+  /** Shared with the paste parser's rules: a name, at most 80 characters, no control characters. */
+  static String nameProblem(String name) {
+    if (name.isEmpty()) {
+      return "Give each holiday a name.";
+    }
+    if (HolidayPasteParser.hasControlCharacter(name)) {
+      return HolidayPasteParser.CONTROL_CHARACTER_MESSAGE;
+    }
+    if (name.codePointCount(0, name.length()) > MAX_NAME_LENGTH) {
+      return NAME_LENGTH_MESSAGE;
+    }
+    return null;
   }
 
   private static boolean isInt(JsonNode node) {
