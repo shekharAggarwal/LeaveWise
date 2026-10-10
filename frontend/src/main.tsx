@@ -1,8 +1,8 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import '@astryxdesign/core/reset.css';
-import '@astryxdesign/theme-stone/theme.css';
-// The Stone theme names Figtree (body) and Montserrat (headings); self-hosted, so no third-party requests.
+import './theme/leavewise.css';
+// The LeaveWise theme (Stone's typography) names Figtree (body) and Montserrat (headings); self-hosted, so no third-party requests.
 import '@fontsource/figtree/latin-400.css';
 import '@fontsource/figtree/latin-500.css';
 import '@fontsource/figtree/latin-600.css';

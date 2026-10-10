@@ -3,7 +3,7 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {Theme} from '@astryxdesign/core/theme';
-import {stoneTheme} from '@astryxdesign/theme-stone/built';
+import {leavewiseTheme} from './theme/leavewise';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 import type {CalendarDay, PlanRequest, PlanResponse} from './api/types';
@@ -43,7 +43,7 @@ const request = (year: number, leaveDays: number): PlanRequest => ({
 
 function show(plan: PlanResponse, leaveDays: number) {
   render(
-    <Theme theme={stoneTheme}>
+    <Theme theme={leavewiseTheme}>
       <Results plan={plan} request={request(plan.year, leaveDays)} isStale={false} />
     </Theme>,
   );

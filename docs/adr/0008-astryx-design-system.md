@@ -1,6 +1,6 @@
 # 0008. Astryx 0.6.6 with the Stone theme, pinned exactly
 
-Status: Accepted (2026-10-09)
+Status: Accepted (2026-10-09); amended 2026-10-10 (LeaveWise theme, see Amendment)
 
 ## Context
 
@@ -45,3 +45,18 @@ dependency section credits Astryx and StyleX under MIT.
 | A component is missing or buggy | Check `astryx search` and `astryx component <Name>` first; report with `astryx gap-report`; compose existing components before any custom StyleX. |
 | Docs out of step with the installed version | The CLI serves docs for the installed version (`--dense` reads), so agents never rely on web docs or memory. |
 | The project may outlive the beta | The UI uses only public subpath exports (`@astryxdesign/core/Button`, ...), which keeps a future migration mechanical. |
+
+## Amendment (2026-10-10): the LeaveWise theme
+
+The owner approved a redesign drawn on a Claude Design canvas ("LeaveWise UI redesign": indigo leave days, marigold
+holidays, warm-grey weekly offs) and, asked whether to keep Stone's palette unchanged as the brief says, chose a
+custom theme (docs/ai/REVIEW_LOG.md, 2026-10-10). So:
+
+- `frontend/src/theme/leavewise.ts` is a `defineTheme` with `extends: stoneTheme`: Stone's typography, scales, icons
+  and every token are inherited; only the accent family (`--color-accent`, `-accent-muted`, `text-accent`,
+  `icon-accent`, `on-accent`) is replaced by an indigo, in light and dark.
+- It is compiled with `astryx theme build` into a static CSS file plus a module (no runtime style injection, so the
+  production CSP holds; AI failure 14). The built files are committed; rebuild after every edit to the source.
+- Contrast of the new accent is checked by the real-browser axe run in light and dark (`npm run check:browser`).
+- Calendar day colours stay on Stone's categorical tokens (orange for holidays, muted for weekly offs) and the new
+  accent for leave days, always with a letter code, so colour is never the only signal.

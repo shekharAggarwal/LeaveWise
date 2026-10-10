@@ -201,6 +201,14 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] quality-gate passes and Docker image builds, output shown; branch pushed
 - [ ] STOP 3: cloud work summary, LAPTOP steps and human steps in order
 
+## UI redesign (owner request, 2026-10-10)
+- [x] Screens planned and drawn on a Claude Design canvas; owner approved, chose an indigo custom theme
+- [ ] LeaveWise theme (Stone plus indigo accent), built CSS, CSP and contrast checked
+- [ ] Planner inputs restyled (header, input card, leave stepper, break-style cards, holiday editor)
+- [ ] Results restyled (summary card, stats, break list with day strips, calendar legend and day panel)
+- [ ] No-break note offers a shorter break style
+- [ ] Tests, QA map, API.md copy, quality gate, ui-reviewer and code-reviewer, commit
+
 ## Laptop phase (ends at STOP 4)
 - [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO
 - [ ] LAPTOP: run the app locally, check every screen at phone and desktop widths, fix, save screenshots

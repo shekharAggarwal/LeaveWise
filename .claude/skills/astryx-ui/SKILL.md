@@ -7,7 +7,7 @@ paths:
 
 # LeaveWise UI: quality bar and Astryx workflow
 
-The UI must look designed, not generated. Astryx (`@astryxdesign/core` 0.6.6, Stone theme) is the only UI library.
+The UI must look designed, not generated. Astryx (`@astryxdesign/core` 0.6.6, LeaveWise theme on Stone) is the only UI library.
 The managed block in `frontend/CLAUDE.md` holds Astryx's own rules; this skill adds the project's bar on top.
 
 ## Workflow for every screen (run in `frontend/`)
@@ -31,7 +31,8 @@ The managed block in `frontend/CLAUDE.md` holds Astryx's own rules; this skill a
 
 ## Quality bar (from the owner's brief)
 
-- One theme (Stone) with its palette unchanged.
+- One theme: the LeaveWise theme (`src/theme/leavewise.ts`), Stone with an indigo accent (owner's choice, ADR 0008
+  amendment). Change colours only there, then rebuild it with `astryx theme build`.
 - Colour carries meaning (leave days, holidays, weekly offs, breaks) and is **always paired with a text label**.
   The PRD repeats it: "never colour alone".
 - No gradients, glows, emoji, decorative illustrations, stock photos, fake stats or testimonials, or lorem ipsum.
