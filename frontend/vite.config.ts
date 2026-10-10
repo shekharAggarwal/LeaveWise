@@ -14,7 +14,21 @@ export default defineConfig({
     ...(isVitest ? [] : astryxStylex()),
     react(
       isVitest
-        ? {babel: {plugins: [['@stylexjs/babel-plugin', {dev: true, runtimeInjection: true}]]}}
+        ? {
+            babel: {
+              plugins: [
+                [
+                  '@stylexjs/babel-plugin',
+                  {
+                    dev: true,
+                    runtimeInjection: true,
+                    // Lets tests import theme tokens (defineVars) from @astryxdesign/core.
+                    unstable_moduleResolution: {type: 'commonJS', rootDir: import.meta.dirname},
+                  },
+                ],
+              ],
+            },
+          }
         : {},
     ),
   ],

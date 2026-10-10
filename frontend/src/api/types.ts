@@ -3,13 +3,7 @@
 export type IsoDate = string; // YYYY-MM-DD
 
 export type Weekday =
-  | 'MONDAY'
-  | 'TUESDAY'
-  | 'WEDNESDAY'
-  | 'THURSDAY'
-  | 'FRIDAY'
-  | 'SATURDAY'
-  | 'SUNDAY';
+  'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
 
 export type BreakStyleId = 'LONG_WEEKENDS' | 'SHORT_TRIPS' | 'BIG_TRIPS';
 

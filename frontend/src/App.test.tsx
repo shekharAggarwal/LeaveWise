@@ -69,7 +69,8 @@ describe('LeaveWise journey (PRD, User journey)', () => {
 
     // Break list: dates, days off, leave dates, holidays inside, days off per leave.
     const breaks = within(results).getByRole('list', {name: 'Breaks'});
-    const first = within(breaks).getAllByRole('listitem')[0]!;
+    const [first] = within(breaks).getAllByRole('listitem');
+    if (!first) throw new Error('expected at least one break');
     expect(first).toHaveTextContent('Thu, 4 Mar – Sun, 7 Mar');
     expect(first).toHaveTextContent('4 days off');
     expect(first).toHaveTextContent('Leave: Fri, 5 Mar');
@@ -82,9 +83,10 @@ describe('LeaveWise journey (PRD, User journey)', () => {
     }
     const leaveDay = within(results).getByRole('button', {name: /^Fri, 5 Mar: leave day/});
     await user.click(leaveDay);
-    expect(within(results).getByRole('status')).toHaveTextContent(
+    const announced = within(results).getByText(
       'Fri, 5 Mar: leave day, part of a 4-day break (Thu, 4 Mar – Sun, 7 Mar)',
     );
+    expect(announced.closest('[role="status"]')).not.toBeNull(); // read out when tapped
     expect(within(results).getAllByText('Leave day').length).toBeGreaterThan(0); // legend
 
     // Calendar file.
