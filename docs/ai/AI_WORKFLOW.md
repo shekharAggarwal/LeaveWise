@@ -48,9 +48,11 @@ links each change to the Claude Code session that made it.
 | --- | --- | --- | --- |
 | Explore | Haiku | not run yet | |
 | gate-runner | Haiku | Phase 2: ran the full gate via the `quality-gate` skill; returned the summary only (11 checks PASS). | none needed |
+| test-designer | Sonnet, high | Phase 3: two parallel runs wrote 57 holiday/.ics unit tests and 78 API/web MockMvc tests from docs/API.md before the code; one test-config bug (Spring 6 mapping, AI failure 10). | Fixed in the test config; tests otherwise unchanged. |
 | test-designer | Sonnet, high | Phase 2: wrote 135 planner tests and the brute-force oracle before the code (130 failing on stubs, 5 oracle-only passing). Hit its 40-turn limit once and was resumed to report. Found that the `LEAVES_UNUSED` note was unreachable; its date-level property caught an extra year-edge rule in the first implementation. | Note removed from API and planner; edge rule removed (AI failures 5 and 6). |
 | edge-case-hunter | Opus, high | Phase 2: no planner defect found (3,000-try year-edge fuzz against the date oracle, code reading). Killed 2 PIT survivors with 6 new tests; showed 2 survivors equivalent and 2 a safety bound. Raised one interpretation for the owner (year edge on 30/31 Dec). | `BreakOptimizerContractTest`, `LeaveBreakTest` added; PIT 178 → 180 of 184. |
 | code-reviewer | Sonnet, high | Phase 1 docs vs PRD (run as a Sonnet general-purpose agent with the code-reviewer brief, because project agents load only in a new session): 10 findings, 0 high, 4 medium, 6 low. Verdict: changes needed. | All 10 fixed in `docs/API.md`, ADR 0003, ADR 0005 and `docs/QA.md`; finding 2 logged as AI failure 4. |
+| code-reviewer | Sonnet, high | Phase 3 API diff: 10 findings, 2 high (filter bypass via `/%61pi` and `/api;x`, `.ics` line injection via lone CR), 4 medium, 4 low; ran its own copy of the app with curl to confirm 4 of them. Verdict: changes needed. | All fixed in `07c1a2f` with regression tests that fail on the old code (AI failures 7 to 9); `instance` field and `/api/%zz` container 400 documented as known. |
 | security-reviewer | Sonnet, medium | not run yet | |
 | ui-reviewer | Sonnet, medium | not run yet | |
 

@@ -82,3 +82,52 @@ Template:
 - Rule added: CLAUDE.md, Working rules: "Every result state written into a contract needs an example input that
   produces it; if none exists, it doesn't go in."
 
+## 7. Security filters keyed on the raw URI, so they could be bypassed (2026-10-10)
+- What the AI got wrong: the rate-limit, size-limit and security-header filters (commit `260f86d`) decided "is this
+  the API?" with `request.getRequestURI().startsWith("/api/")`. The raw URI is not decoded and keeps `;parameters`,
+  while Spring still routes `/%61pi/plan` and `/api;x=1/plan` to the controllers.
+- How it was caught: code-reviewer (Sonnet) on the API diff, confirmed against a running copy: 80 requests to
+  `/%61pi/holidays/parse` all got 200 (the same 80 to `/api/...` got 61 x 429), and a 40 KB body to `/api;x/plan` got
+  200 instead of 413.
+- Fix: commit `07c1a2f` registers the limits with container URL patterns (`/api/*`), which match the decoded path,
+  and the header filter uses `UrlPathHelper`. Regression test `PathBypassTest` (real server, random port); 3 of its
+  4 tests fail on the old code.
+- Root cause: matched on a string form of the path instead of the path the container routes; MockMvc tests can't
+  see the difference.
+- Rule added: CLAUDE.md, Working rules: "Decide routing in the container (URL patterns, servlet path), never by
+  string-matching `getRequestURI()`; test path-sensitive security with a real server."
+
+## 8. A lone CR in a holiday name could inject lines into the .ics file (2026-10-10)
+- What the AI got wrong: `IcsWriter.escape` (commit `f4f7ac6`) escaped `\r\n` and `\n` but not a lone `\r`, and the
+  plan endpoint accepted any characters in holiday names.
+- How it was caught: code-reviewer, confirmed with `od` on a real `/api/plan/ics` response for the name
+  `Evil\rATTACH:http://x`. test-designer's 21 `IcsWriterTest` cases had covered `\n` only.
+- Fix: commit `07c1a2f` escapes every line-break form (regex `\R`) and drops control characters; the API and the
+  paste parser reject names with control characters. Regression tests `IcsInjectionTest` (4, all fail on the old
+  code) and `ReviewFindingsApiTest#holidayNameWithAControlCharacterIsRejected`.
+- Root cause: escaping written from the common case (`\n`) instead of from the format's definition of a line break.
+- Rule added: none beyond the test; RFC 5545 text now goes through one escaping function with its own tests.
+
+## 9. Smaller API gaps from the same review (2026-10-10)
+- What the AI got wrong (commit `260f86d`): an unusual `Accept` header gave a 500 and an ERROR log; the rate limiter
+  read the clock twice per call and could drop tokens on a backwards step; IPv6 clients got one bucket per address;
+  `/api/holidays/parse` coerced `"2027"` and `2027.9` to 2027; blank names and missing dates got misleading messages;
+  name length counted UTF-16 units; `/actuator/health` returned probe groups not in docs/API.md.
+- How it was caught: code-reviewer findings 3 to 8 and 10.
+- Fix: commit `07c1a2f`, each with a regression test (`ReviewFindingsApiTest`, `RateLimitFilterTest`,
+  `ReviewFindingsHolidaysTest`); docs/API.md updated with the new messages and the 406 row.
+- Root cause: validation was strict on one endpoint (`/api/plan`) and not reused on the other; error paths outside
+  the happy path weren't listed when writing the handler.
+- Rule added: none: covered by the tests and the shared `PlanInputs.requireYear`.
+
+## 10. Two test-side gaps caught by running the tests (2026-10-10)
+- What the AI got wrong: (a) test-designer registered the test-only 500 endpoint with a class-level
+  `@RequestMapping`, which Spring 6+ no longer maps, so `ErrorFormatTest` got a 404; (b) my first API implementation
+  let Spring MVC log request and response bodies at DEBUG.
+- How it was caught: the first full run of the API tests: (a) `ErrorFormatTest#unexpectedFailureIs500...` failed with
+  404; (b) test-designer's `PrivacyTest` turns on DEBUG and found its marker string in the log.
+- Fix: commit `260f86d`: (a) `@RestController` on the test endpoint; (b) Spring's web loggers pinned to INFO in
+  `application.properties`, so turning on DEBUG elsewhere never logs input.
+- Root cause: (a) an outdated Spring idiom; (b) privacy relied on the default log level instead of being enforced.
+- Rule added: none: `PrivacyTest` guards (b).
+

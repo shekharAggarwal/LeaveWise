@@ -84,3 +84,5 @@ scripts/  quality-gate.sh and delivery scripts
   tests, then the code. (AI failure 5)
 - Every result state written into a contract needs an example input that produces it; if none exists, it doesn't go
   in. (AI failure 6)
+- Decide routing in the container (URL patterns, servlet path), never by string-matching `getRequestURI()`; test
+  path-sensitive security with a real server. (AI failure 7)

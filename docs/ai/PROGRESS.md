@@ -113,13 +113,13 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] STOP 2: algorithm in plain words, worked example, oracle results, mutation score
 
 ## Phase 3: API and UI
-- [ ] Plan endpoint
-- [ ] Holiday list endpoint
-- [ ] .ics download (RFC 5545 all-day events, one per break)
-- [ ] Validation and error messages exactly as in the PRD table
-- [ ] Rate limit per IP, request size limit, security headers, inputs never logged
-- [ ] Health endpoint
-- [ ] code-reviewer on the API diff, fixes
+- [x] Plan endpoint
+- [x] Holiday list endpoint
+- [x] .ics download (RFC 5545 all-day events, one per break)
+- [x] Validation and error messages exactly as in the PRD table
+- [x] Rate limit per IP, request size limit, security headers, inputs never logged
+- [x] Health endpoint
+- [x] code-reviewer on the API diff, fixes
 - [ ] UI journey screens (Astryx workflow, ui-reviewer after each)
 - [ ] Results: summary, break list, 12-month calendar, .ics download
 - [ ] Main flow test and axe check
