@@ -98,8 +98,9 @@ describe('LeaveWise journey (PRD, User journey)', () => {
   it('downloads the .ics for the same inputs', async () => {
     const {calls} = stubApi();
     const {user} = await renderLoaded();
-    const createObjectURL = vi.fn(() => 'blob:fixture');
-    vi.stubGlobal('URL', Object.assign(URL, {createObjectURL, revokeObjectURL: vi.fn()}));
+    const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:fixture');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
 
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
     await user.click(await screen.findByRole('button', {name: 'Download calendar file (.ics)'}));
@@ -126,18 +127,19 @@ describe('LeaveWise journey (PRD, User journey)', () => {
 });
 
 describe('Validation and errors (PRD table)', () => {
-  it('leave days outside 0 to 60 or not whole: PRD message, no request sent', async () => {
-    const {calls} = stubApi();
-    const {user} = await renderLoaded();
-    const input = screen.getByRole('textbox', {name: 'Leave days'});
-    for (const bad of ['61', '-1', '12.5', 'abc']) {
+  it.each(['61', '-1', '12.5', 'abc'])(
+    'leave days %j: PRD message, no request sent',
+    async (bad) => {
+      const {calls} = stubApi();
+      const {user} = await renderLoaded();
+      const input = screen.getByRole('textbox', {name: 'Leave days'});
       await user.clear(input);
       await user.type(input, bad);
       await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-      expect(await screen.findAllByText('Enter a whole number from 0 to 60.')).not.toHaveLength(0);
-    }
-    expect(calls.some((c) => c.url === '/api/plan')).toBe(false);
-  });
+      expect(await screen.findByText('Enter a whole number from 0 to 60.')).toBeInTheDocument();
+      expect(calls.some((c) => c.url === '/api/plan')).toBe(false);
+    },
+  );
 
   it('all seven weekly offs: PRD message, no request sent', async () => {
     const {calls} = stubApi();

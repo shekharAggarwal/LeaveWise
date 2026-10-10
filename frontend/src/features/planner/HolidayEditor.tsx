@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Badge} from '@astryxdesign/core/Badge';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
@@ -8,13 +8,14 @@ import {DateInput} from '@astryxdesign/core/DateInput';
 import {Grid} from '@astryxdesign/core/Grid';
 import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {Link} from '@astryxdesign/core/Link';
-import {Text} from '@astryxdesign/core/Text';
+import {Skeleton} from '@astryxdesign/core/Skeleton';
+import {Heading, Text} from '@astryxdesign/core/Text';
 import {TextArea} from '@astryxdesign/core/TextArea';
 import {TextInput} from '@astryxdesign/core/TextInput';
-import {ApiError, parseHolidays} from '../../api/client';
+import {messageOf, parseHolidays} from '../../api/client';
 import type {HolidaysResponse, IsoDate} from '../../api/types';
 import {formatDay} from '../../lib/dates';
-import {addHoliday, type HolidayRow} from './holidayRows';
+import type {HolidayRow} from './holidayRows';
 
 const MAX_NAME_LENGTH = 80;
 
@@ -22,16 +23,24 @@ const MAX_NAME_LENGTH = 80;
 type StrictIsoDate = `${number}${number}${number}${number}-${number}${number}-${number}${number}`;
 const strictDate = (date: string) => date as StrictIsoDate;
 
+export type HolidayLoad =
+  | {state: 'loading'}
+  | {state: 'error'; message: string}
+  | {state: 'ready'; value: HolidaysResponse};
+
 interface Props {
   year: number;
-  source: HolidaysResponse | null;
+  load: HolidayLoad;
   rows: HolidayRow[];
   ticked: Set<IsoDate>;
-  onRowsChange: (rows: HolidayRow[], newlyTicked: IsoDate[]) => void;
+  /** Adds holidays to the latest rows (functional update in the parent) and ticks their dates. */
+  onAdd: (holidays: {date: IsoDate; name: string}[]) => void;
   onTickedChange: (ticked: Set<IsoDate>) => void;
+  onRetry: () => void;
 }
 
-export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTickedChange}: Props) {
+/** Rendered with key={year}: a year switch starts a fresh editor and drops any paste in flight. */
+export function HolidayEditor({year, load, rows, ticked, onAdd, onTickedChange, onRetry}: Props) {
   const [date, setDate] = useState<StrictIsoDate | undefined>(undefined);
   const [name, setName] = useState('');
   const [addError, setAddError] = useState<{date?: string; name?: string}>({});
@@ -39,6 +48,14 @@ export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTicke
   const [pasteErrors, setPasteErrors] = useState<{line: number; reason: string}[]>([]);
   const [pasteFailure, setPasteFailure] = useState<string | null>(null);
   const [isPasting, setIsPasting] = useState(false);
+  const alive = useRef(true);
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
   const addOne = () => {
     const trimmed = name.trim();
@@ -52,7 +69,7 @@ export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTicke
     };
     setAddError(errors);
     if (errors.date || errors.name || !date) return;
-    onRowsChange(addHoliday(rows, date, trimmed), [date]);
+    onAdd([{date, name: trimmed}]);
     setDate(undefined);
     setName('');
   };
@@ -62,29 +79,24 @@ export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTicke
     setPasteFailure(null);
     try {
       const result = await parseHolidays(year, pasteText);
-      let next = rows;
-      for (const h of result.holidays) next = addHoliday(next, h.date, h.name);
-      onRowsChange(
-        next,
-        result.holidays.map((h) => h.date),
-      );
+      if (!alive.current) return; // the year changed while the paste was in flight
+      onAdd(result.holidays.map((h) => ({date: h.date, name: h.name})));
       setPasteErrors(result.errors);
       if (result.errors.length === 0) setPasteText('');
     } catch (e) {
-      setPasteFailure(e instanceof ApiError ? e.message : String(e));
+      if (alive.current) setPasteFailure(messageOf(e));
     } finally {
-      setIsPasting(false);
+      if (alive.current) setIsPasting(false);
     }
   };
 
+  const source = load.state === 'ready' ? load.value : null;
   const tickedCount = rows.filter((r) => ticked.has(r.date)).length;
 
   return (
     <VStack gap={4}>
       <VStack gap={1}>
-        <Text type="large" weight="semibold">
-          Holidays
-        </Text>
+        <Heading level={2}>Holidays</Heading>
         {source?.available && source.source ? (
           <Text type="supporting" color="secondary">
             {tickedCount} of {rows.length} apply. Preloaded from{' '}
@@ -94,11 +106,31 @@ export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTicke
             ({source.source.publisher}). {source.reminder}
           </Text>
         ) : (
-          <Text type="supporting" color="secondary">
-            {source?.reminder ?? ''}
-          </Text>
+          source && (
+            <Text type="supporting" color="secondary">
+              {source.reminder}
+            </Text>
+          )
         )}
       </VStack>
+
+      {load.state === 'loading' && (
+        <VStack gap={2} aria-label="Loading the holiday list">
+          <Skeleton width="100%" height={40} />
+          <Skeleton width="100%" height={40} index={1} />
+        </VStack>
+      )}
+
+      {load.state === 'error' && (
+        <Banner
+          status="error"
+          title={load.message}
+          description="Planning needs the holiday list. Try again, or check your connection."
+          endContent={
+            <Button label="Load the holiday list again" variant="secondary" onClick={onRetry} />
+          }
+        />
+      )}
 
       {source && !source.available && (
         <Banner
@@ -129,65 +161,69 @@ export function HolidayEditor({year, source, rows, ticked, onRowsChange, onTicke
         </CheckboxList>
       )}
 
-      <VStack gap={2}>
-        <Grid columns={{minWidth: 200}} gap={3}>
-          <DateInput
-            label="Holiday date"
-            value={date}
-            onChange={setDate}
-            min={strictDate(`${year}-01-01`)}
-            max={strictDate(`${year}-12-31`)}
-            status={addError.date ? {type: 'error', message: addError.date} : undefined}
-          />
-          <TextInput
-            label="Holiday name"
-            value={name}
-            onChange={setName}
-            onEnter={addOne}
-            status={addError.name ? {type: 'error', message: addError.name} : undefined}
-          />
-        </Grid>
-        <HStack>
-          <Button label="Add holiday" variant="secondary" onClick={addOne} />
-        </HStack>
-      </VStack>
+      {source && (
+        <>
+          <VStack gap={2}>
+            <Grid columns={{minWidth: 200}} gap={3}>
+              <DateInput
+                label="Holiday date"
+                value={date}
+                onChange={setDate}
+                min={strictDate(`${year}-01-01`)}
+                max={strictDate(`${year}-12-31`)}
+                status={addError.date ? {type: 'error', message: addError.date} : undefined}
+              />
+              <TextInput
+                label="Holiday name"
+                value={name}
+                onChange={setName}
+                onEnter={addOne}
+                status={addError.name ? {type: 'error', message: addError.name} : undefined}
+              />
+            </Grid>
+            <HStack>
+              <Button label="Add holiday" variant="secondary" onClick={addOne} />
+            </HStack>
+          </VStack>
 
-      <Collapsible trigger={<Text type="body">Paste a list</Text>} defaultIsOpen={false}>
-        <VStack gap={2}>
-          <TextArea
-            label="Paste holidays"
-            description={`One per line, like ${year}-01-26 Name. Up to 50 lines.`}
-            value={pasteText}
-            onChange={setPasteText}
-            rows={4}
-          />
-          <HStack>
-            <Button
-              label="Add pasted lines"
-              variant="secondary"
-              isLoading={isPasting}
-              isDisabled={pasteText.trim() === ''}
-              onClick={() => void addPasted()}
-            />
-          </HStack>
-          {pasteErrors.length > 0 && (
-            <Banner
-              status="warning"
-              title={`${pasteErrors.length} ${pasteErrors.length === 1 ? 'line' : 'lines'} not loaded`}
-              description={
-                <VStack gap={0.5}>
-                  {pasteErrors.map((e) => (
-                    <Text key={e.line} type="supporting">
-                      Line {e.line}: {e.reason}
-                    </Text>
-                  ))}
-                </VStack>
-              }
-            />
-          )}
-          {pasteFailure && <Banner status="error" title={pasteFailure} />}
-        </VStack>
-      </Collapsible>
+          <Collapsible trigger={<Text type="body">Paste a list</Text>} defaultIsOpen={false}>
+            <VStack gap={2}>
+              <TextArea
+                label="Paste holidays"
+                description={`One per line, like ${year}-01-26 Name. Up to 50 lines.`}
+                value={pasteText}
+                onChange={setPasteText}
+                rows={4}
+              />
+              <HStack>
+                <Button
+                  label="Add pasted lines"
+                  variant="secondary"
+                  isLoading={isPasting}
+                  isDisabled={pasteText.trim() === ''}
+                  onClick={() => void addPasted()}
+                />
+              </HStack>
+              {pasteErrors.length > 0 && (
+                <Banner
+                  status="warning"
+                  title={`${pasteErrors.length} ${pasteErrors.length === 1 ? 'line' : 'lines'} not loaded`}
+                  description={
+                    <VStack gap={0.5}>
+                      {pasteErrors.map((e) => (
+                        <Text key={e.line} type="supporting">
+                          Line {e.line}: {e.reason}
+                        </Text>
+                      ))}
+                    </VStack>
+                  }
+                />
+              )}
+              {pasteFailure && <Banner status="error" title={pasteFailure} />}
+            </VStack>
+          </Collapsible>
+        </>
+      )}
     </VStack>
   );
 }

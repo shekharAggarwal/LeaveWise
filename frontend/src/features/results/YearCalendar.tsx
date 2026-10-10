@@ -6,9 +6,11 @@ import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {
   colorVars,
   focusVars,
+  fontWeightVars,
   radiusVars,
   sizeVars,
   spacingVars,
+  textSizeVars,
 } from '@astryxdesign/core/theme/tokens.stylex';
 import type {CalendarDay, IsoDate, PlanResponse} from '../../api/types';
 import {dayOfMonth, monthName, monthOf, weekdayIndex} from '../../lib/dates';
@@ -41,8 +43,7 @@ const styles = stylex.create({
     minHeight: sizeVars['--size-element-lg'],
     padding: 0,
     fontFamily: 'inherit',
-    fontSize: '0.75rem',
-    lineHeight: 1.1,
+    fontSize: textSizeVars['--font-size-sm'],
     outline: {
       default: 'none',
       ':focus-visible': `${focusVars['--focus-outline-width']} ${focusVars['--focus-outline-style']} ${focusVars['--focus-outline-color']}`,
@@ -69,14 +70,16 @@ const styles = stylex.create({
     borderStyle: 'dashed',
   },
   past: {
-    color: colorVars['--color-text-disabled'],
+    // Readable (secondary, not disabled): these days are still focusable and describable.
+    color: colorVars['--color-text-secondary'],
+    backgroundColor: colorVars['--color-background-body'],
   },
   selected: {
     boxShadow: `0 0 0 ${spacingVars['--spacing-0-5']} ${colorVars['--color-text-primary']}`,
   },
   code: {
-    fontSize: '0.625rem',
-    fontWeight: 600,
+    fontSize: textSizeVars['--font-size-sm'],
+    fontWeight: fontWeightVars['--font-weight-semibold'],
   },
   legendSwatch: {
     display: 'inline-flex',
@@ -88,10 +91,28 @@ const styles = stylex.create({
     borderStyle: 'solid',
     borderWidth: spacingVars['--spacing-0-5'],
     borderColor: 'transparent',
-    fontSize: '0.625rem',
-    fontWeight: 600,
+    fontSize: textSizeVars['--font-size-sm'],
+    fontWeight: fontWeightVars['--font-weight-semibold'],
   },
+  // A month's first day starts in its weekday column, so no empty placeholder cells are needed.
+  start1: {gridColumnStart: 1},
+  start2: {gridColumnStart: 2},
+  start3: {gridColumnStart: 3},
+  start4: {gridColumnStart: 4},
+  start5: {gridColumnStart: 5},
+  start6: {gridColumnStart: 6},
+  start7: {gridColumnStart: 7},
 });
+
+const COLUMN_START = [
+  styles.start1,
+  styles.start2,
+  styles.start3,
+  styles.start4,
+  styles.start5,
+  styles.start6,
+  styles.start7,
+];
 
 function addDays(date: IsoDate, n: number): IsoDate {
   const [y, m, d] = date.split('-').map(Number);
@@ -129,6 +150,8 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
   };
 
   const selectedDay = selected ? byDate.get(selected) : undefined;
+  // Exactly one day is always reachable with Tab, even if the remembered one isn't in this plan.
+  const tabStop = byDate.has(focused) ? focused : firstPlanned;
 
   return (
     <VStack gap={4}>
@@ -139,6 +162,7 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
           <Legend code="H" label="Holiday" xstyle={styles.holiday} />
           <Legend code="W" label="Weekly off" xstyle={styles.weeklyOff} />
           <Legend code="" label="Break (outlined)" xstyle={styles.inBreak} />
+          <Legend code="" label="Free long weekend (dashed)" xstyle={styles.freeWeekend} />
         </HStack>
         <Text type="supporting" color="secondary">
           Tap a day to see what it is. Arrow keys move between days.
@@ -159,10 +183,6 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
                   <span aria-hidden="true">{letter}</span>
                 </Text>
               ))}
-              {days[0] &&
-                Array.from({length: weekdayIndex(days[0].date)}, (_, i) => (
-                  <span key={`pad${i}`} aria-hidden="true" />
-                ))}
               {days.map((day) => {
                 const label = describeDay(day, plan);
                 return (
@@ -173,9 +193,8 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
                       if (el) buttons.current.set(day.date, el);
                       else buttons.current.delete(day.date);
                     }}
-                    tabIndex={day.date === focused ? 0 : -1}
+                    tabIndex={day.date === tabStop ? 0 : -1}
                     aria-label={label}
-                    aria-pressed={day.date === selected}
                     onClick={() => {
                       setSelected(day.date);
                       setFocused(day.date);
@@ -190,6 +209,7 @@ export function YearCalendar({plan}: {plan: PlanResponse}) {
                       day.freeLongWeekendIndex !== null && styles.freeWeekend,
                       !day.planned && styles.past,
                       day.date === selected && styles.selected,
+                      day === days[0] && COLUMN_START[weekdayIndex(day.date)],
                     )}
                   >
                     <span aria-hidden="true">{dayOfMonth(day.date)}</span>

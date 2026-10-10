@@ -1,11 +1,11 @@
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
 import {Divider} from '@astryxdesign/core/Divider';
 import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {List, ListItem} from '@astryxdesign/core/List';
 import {Heading, Text} from '@astryxdesign/core/Text';
-import {ApiError, downloadCalendar} from '../../api/client';
+import {downloadCalendar, messageOf} from '../../api/client';
 import type {HolidayDay, PlanRequest, PlanResponse} from '../../api/types';
 import {formatDay, formatRange} from '../../lib/dates';
 import {YearCalendar} from './YearCalendar';
@@ -30,41 +30,51 @@ function Wrapping({children}: {children: string}) {
 interface Props {
   plan: PlanResponse;
   request: PlanRequest;
+  /** True when an input changed after this plan was made. */
+  isStale: boolean;
 }
 
-export function Results({plan, request}: Props) {
+/** Mounted once per plan (keyed by the parent), so it takes focus each time a plan arrives. */
+export function Results({plan, request, isStale}: Props) {
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const {summary} = plan;
   const noLeaveUsed = plan.notes.some((n) => n.code === 'NO_LEAVE_USED');
+  const region = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    region.current?.focus();
+  }, []);
 
   const download = async () => {
     setDownloadError(null);
     try {
       await downloadCalendar(request);
     } catch (e) {
-      setDownloadError(e instanceof ApiError ? e.message : String(e));
+      setDownloadError(messageOf(e));
     }
   };
 
   return (
-    <section aria-labelledby="results-heading">
+    <section aria-labelledby="results-heading" tabIndex={-1} ref={region}>
       <VStack gap={6}>
         <VStack gap={2}>
           <Heading level={2} id="results-heading">
             Your plan
           </Heading>
+          {isStale && (
+            <Banner
+              status="warning"
+              title="Inputs changed. Tap Plan my leaves to update this plan."
+            />
+          )}
           {summary.breakCount > 0 && (
-            <VStack gap={1}>
-              <Text type="display-2" weight="bold">
-                {plural(summary.leavesUsed, 'leave', 'leaves')} → {summary.totalDaysOff} days off
-              </Text>
-              <Text type="large" color="secondary">
-                across {plural(summary.breakCount, 'break', 'breaks')}
-                {summary.leavesUnused > 0
-                  ? `, ${plural(summary.leavesUnused, 'leave', 'leaves')} unused`
-                  : ''}
-              </Text>
-            </VStack>
+            <Text type="display-3" weight="bold">
+              {plural(summary.leavesUsed, 'leave', 'leaves')} → {summary.totalDaysOff} days off
+              across {plural(summary.breakCount, 'break', 'breaks')}
+              {summary.leavesUnused > 0
+                ? `, ${plural(summary.leavesUnused, 'leave', 'leaves')} unused`
+                : ''}
+            </Text>
           )}
           {plan.notes.map((note) => (
             <Banner key={note.code} status="info" title={note.message} />

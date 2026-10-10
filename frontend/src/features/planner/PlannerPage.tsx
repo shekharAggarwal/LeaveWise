@@ -1,7 +1,7 @@
 // Scaffolded from the Astryx "contact-form" page template (npm run astryx -- template contact-form);
 // its frame (centred Section, stacked groups with dividers, one full-width primary action) is kept.
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
@@ -12,13 +12,12 @@ import {RadioList, RadioListItem} from '@astryxdesign/core/RadioList';
 import {Section} from '@astryxdesign/core/Section';
 import {SegmentedControl, SegmentedControlItem} from '@astryxdesign/core/SegmentedControl';
 import {Skeleton} from '@astryxdesign/core/Skeleton';
-import {Text} from '@astryxdesign/core/Text';
+import {Heading, Text} from '@astryxdesign/core/Text';
 import {TextInput} from '@astryxdesign/core/TextInput';
 import {ToggleButton, ToggleButtonGroup} from '@astryxdesign/core/ToggleButton';
-import {ApiError, getHolidays, getOptions, planLeaves} from '../../api/client';
+import {ApiError, getHolidays, getOptions, messageOf, planLeaves} from '../../api/client';
 import type {
   BreakStyleId,
-  HolidaysResponse,
   IsoDate,
   Options,
   PlanRequest,
@@ -27,8 +26,8 @@ import type {
 } from '../../api/types';
 import {parseLeaveDays} from '../../lib/validation';
 import {Results} from '../results/Results';
-import {HolidayEditor} from './HolidayEditor';
-import type {HolidayRow} from './holidayRows';
+import {HolidayEditor, type HolidayLoad} from './HolidayEditor';
+import {addHoliday, type HolidayRow} from './holidayRows';
 
 // Seven day buttons don't fit a 360 px phone in one row; no ToggleButtonGroup prop wraps them.
 const styles = stylex.create({wrapRow: {flexWrap: 'wrap'}});
@@ -55,21 +54,30 @@ const BREAK_STYLE_HINTS: Record<BreakStyleId, string> = {
 
 type Load<T> = {state: 'loading'} | {state: 'error'; message: string} | {state: 'ready'; value: T};
 
+interface Result {
+  seq: number;
+  plan: PlanResponse;
+  request: PlanRequest;
+  inputKey: string;
+}
+
 export function PlannerPage() {
   const [options, setOptions] = useState<Load<Options>>({state: 'loading'});
   const [year, setYear] = useState<number | null>(null);
   const [leaveText, setLeaveText] = useState('');
   const [weeklyOffs, setWeeklyOffs] = useState<Weekday[]>([]);
   const [breakStyle, setBreakStyle] = useState<BreakStyleId>('LONG_WEEKENDS');
-  const [source, setSource] = useState<HolidaysResponse | null>(null);
+  const [holidays, setHolidays] = useState<HolidayLoad>({state: 'loading'});
+  const [holidayReload, setHolidayReload] = useState(0);
   const [rows, setRows] = useState<HolidayRow[]>([]);
   const [ticked, setTicked] = useState<Set<IsoDate>>(new Set());
   const [errors, setErrors] = useState<{leaveDays?: string; weeklyOffs?: string; form?: string}>(
     {},
   );
   const [isPlanning, setIsPlanning] = useState(false);
-  const [result, setResult] = useState<{plan: PlanResponse; request: PlanRequest} | null>(null);
-  const resultsRef = useRef<HTMLElement | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
+  const planning = useRef(false); // guards a second Enter before React re-renders
+  const planSeq = useRef(0); // drops responses that arrive out of order
 
   const applyOptions = useCallback((value: Options) => {
     setOptions({state: 'ready', value});
@@ -102,44 +110,62 @@ export function PlannerPage() {
     getOptions().then(applyOptions, failOptions);
   };
 
-  // A new year starts from that year's bundled list, all ticked.
-  const changeYear = (next: number) => {
-    setYear(next);
-    setSource(null);
-    setRows([]);
-    setTicked(new Set());
-  };
-
+  // Each year starts from its bundled list, all ticked; added holidays belong to one year.
   useEffect(() => {
     if (year === null) return;
     let current = true;
-    getHolidays(year)
-      .then((response) => {
+    getHolidays(year).then(
+      (value) => {
         if (!current) return;
-        setSource(response);
-        setRows(response.holidays.map((h) => ({date: h.date, names: h.names, added: false})));
-        setTicked(new Set(response.holidays.map((h) => h.date)));
-      })
-      .catch((e: unknown) => {
-        if (!current) return;
-        setErrors((prev) => ({
-          ...prev,
-          form: e instanceof ApiError ? e.message : "Couldn't load the holiday list.",
-        }));
-      });
+        setHolidays({state: 'ready', value});
+        setRows(value.holidays.map((h) => ({date: h.date, names: h.names, added: false})));
+        setTicked(new Set(value.holidays.map((h) => h.date)));
+      },
+      (e: unknown) => {
+        if (current) setHolidays({state: 'error', message: messageOf(e)});
+      },
+    );
     return () => {
       current = false;
     };
-  }, [year]);
+  }, [year, holidayReload]);
 
-  useEffect(() => {
-    if (result) resultsRef.current?.focus();
-  }, [result]);
+  const changeYear = (next: number) => {
+    setYear(next);
+    setHolidays({state: 'loading'});
+    setRows([]);
+    setTicked(new Set());
+    setErrors({});
+  };
+
+  const retryHolidays = () => {
+    setHolidays({state: 'loading'});
+    setHolidayReload((n) => n + 1);
+  };
+
+  const addHolidays = (added: {date: IsoDate; name: string}[]) => {
+    setRows((prev) => added.reduce((acc, h) => addHoliday(acc, h.date, h.name), prev));
+    setTicked((prev) => new Set([...prev, ...added.map((h) => h.date)]));
+  };
+
+  // Everything that shapes a plan; when it differs from the shown plan's, the plan is out of date.
+  const inputKey = useMemo(
+    () =>
+      JSON.stringify({
+        year,
+        leaveText: leaveText.trim(),
+        weeklyOffs: [...weeklyOffs].sort(),
+        breakStyle,
+        rows,
+        ticked: [...ticked].sort(),
+      }),
+    [year, leaveText, weeklyOffs, breakStyle, rows, ticked],
+  );
 
   if (options.state === 'loading') {
     return (
       <Frame>
-        <VStack gap={4} aria-busy="true">
+        <VStack gap={4}>
           <Skeleton width="60%" height={32} />
           <Skeleton width="100%" height={120} index={1} />
           <Skeleton width="100%" height={200} index={2} />
@@ -160,15 +186,18 @@ export function PlannerPage() {
   }
 
   const opts = options.value;
+  const currentYear = Number(opts.today.slice(0, 4));
+  const holidaysReady = holidays.state === 'ready';
 
   const plan = async () => {
+    if (planning.current || !holidaysReady || year === null) return;
     const leaveDays = parseLeaveDays(leaveText, opts.leaveDays.max);
     const next = {
       leaveDays: leaveDays === null ? LEAVE_DAYS_MESSAGE : undefined,
       weeklyOffs: weeklyOffs.length >= 7 ? WORKING_DAY_MESSAGE : undefined,
     };
     setErrors(next);
-    if (next.leaveDays || next.weeklyOffs || leaveDays === null || year === null) return;
+    if (next.leaveDays || next.weeklyOffs || leaveDays === null) return;
     const request: PlanRequest = {
       year,
       leaveDays,
@@ -178,17 +207,27 @@ export function PlannerPage() {
         .filter((r) => ticked.has(r.date))
         .flatMap((r) => r.names.map((name) => ({date: r.date, name}))),
     };
+    const seq = ++planSeq.current;
+    const keyAtSubmit = inputKey;
+    planning.current = true;
     setIsPlanning(true);
     try {
-      setResult({plan: await planLeaves(request), request});
+      const response = await planLeaves(request);
+      if (seq === planSeq.current) {
+        setResult({seq, plan: response, request, inputKey: keyAtSubmit});
+      }
     } catch (e) {
-      const error = e instanceof ApiError ? e : null;
+      if (seq !== planSeq.current) return;
+      const fields =
+        e instanceof ApiError
+          ? {leaveDays: e.fieldMessage('leaveDays'), weeklyOffs: e.fieldMessage('weeklyOffs')}
+          : {};
       setErrors({
-        leaveDays: error?.fieldMessage('leaveDays'),
-        weeklyOffs: error?.fieldMessage('weeklyOffs'),
-        form: error?.message ?? String(e),
+        ...fields,
+        form: fields.leaveDays || fields.weeklyOffs ? undefined : messageOf(e),
       });
     } finally {
+      planning.current = false;
       setIsPlanning(false);
     }
   };
@@ -197,9 +236,9 @@ export function PlannerPage() {
     <Frame>
       <VStack gap={6}>
         <VStack gap={2}>
-          <Text type="display-1" weight="bold" as="h1">
+          <Heading level={1} type="display-2">
             LeaveWise
-          </Text>
+          </Heading>
           <Text type="body" color="secondary">
             Pick the leave days that turn weekends and holidays into the longest breaks.
           </Text>
@@ -219,7 +258,7 @@ export function PlannerPage() {
                 <SegmentedControlItem key={y} value={String(y)} label={String(y)} />
               ))}
             </SegmentedControl>
-            {year === opts.years[0] && (
+            {year === currentYear && (
               <Text type="supporting" color="secondary">
                 Only days after today are planned.
               </Text>
@@ -238,17 +277,18 @@ export function PlannerPage() {
 
         <Divider />
 
-        <HolidayEditor
-          year={year ?? opts.defaultYear}
-          source={source}
-          rows={rows}
-          ticked={ticked}
-          onRowsChange={(next, newlyTicked) => {
-            setRows(next);
-            setTicked((prev) => new Set([...prev, ...newlyTicked]));
-          }}
-          onTickedChange={setTicked}
-        />
+        {year !== null && (
+          <HolidayEditor
+            key={year}
+            year={year}
+            load={holidays}
+            rows={rows}
+            ticked={ticked}
+            onAdd={addHolidays}
+            onTickedChange={setTicked}
+            onRetry={retryHolidays}
+          />
+        )}
 
         <Divider />
 
@@ -294,15 +334,25 @@ export function PlannerPage() {
             size="lg"
             width="100%"
             isLoading={isPlanning}
+            isDisabled={!holidaysReady}
             onClick={() => void plan()}
           />
+          {holidays.state === 'loading' && (
+            <Text type="supporting" color="secondary" justify="center">
+              Loading the holiday list for {year}…
+            </Text>
+          )}
         </VStack>
 
         {result && (
           <>
             <Divider />
-            <span ref={resultsRef} tabIndex={-1} aria-hidden="true" />
-            <Results plan={result.plan} request={result.request} />
+            <Results
+              key={result.seq}
+              plan={result.plan}
+              request={result.request}
+              isStale={result.inputKey !== inputKey}
+            />
           </>
         )}
       </VStack>
@@ -311,7 +361,7 @@ export function PlannerPage() {
 }
 
 /** The template's page frame. */
-function Frame({children}: {children: React.ReactNode}) {
+function Frame({children}: {children: ReactNode}) {
   return (
     <Center axis="horizontal">
       <VStack hAlign="center" width="100%">

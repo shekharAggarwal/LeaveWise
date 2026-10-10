@@ -9,12 +9,14 @@ import type {
   Problem,
 } from './types';
 
+export const CONNECTION_MESSAGE = "Couldn't reach LeaveWise. Check your connection and try again.";
+
 export class ApiError extends Error {
   readonly status: number;
   readonly problem: Problem | null;
 
   constructor(status: number, problem: Problem | null) {
-    super(problem?.detail ?? 'Something went wrong. Check your connection and try again.');
+    super(problem?.detail ?? CONNECTION_MESSAGE);
     this.status = status;
     this.problem = problem;
   }
@@ -25,6 +27,34 @@ export class ApiError extends Error {
   }
 }
 
+/** A user-facing message for any failure: the server's words when it gave some, else what to do. */
+export function messageOf(error: unknown): string {
+  return error instanceof ApiError ? error.message : CONNECTION_MESSAGE;
+}
+
+/** Accepts any error body; keeps only well-formed parts so a proxy's JSON can't break the page. */
+function toProblem(status: number, body: unknown): Problem | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const b = body as Record<string, unknown>;
+  if (typeof b.detail !== 'string' || b.detail.trim() === '') return null;
+  const errors = Array.isArray(b.errors)
+    ? b.errors.filter(
+        (e): e is {field: string; message: string} =>
+          typeof e === 'object' &&
+          e !== null &&
+          typeof (e as Record<string, unknown>).field === 'string' &&
+          typeof (e as Record<string, unknown>).message === 'string',
+      )
+    : [];
+  return {
+    type: typeof b.type === 'string' ? b.type : 'about:blank',
+    title: typeof b.title === 'string' ? b.title : '',
+    status,
+    detail: b.detail,
+    errors,
+  };
+}
+
 async function request(path: string, init?: RequestInit): Promise<Response> {
   let response: Response;
   try {
@@ -33,13 +63,18 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
     throw new ApiError(0, null);
   }
   if (!response.ok) {
-    const problem = await response.json().then(
-      (body) => body as Problem,
-      () => null,
-    );
-    throw new ApiError(response.status, problem);
+    const body = await response.json().catch(() => null);
+    throw new ApiError(response.status, toProblem(response.status, body));
   }
   return response;
+}
+
+async function json<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new ApiError(response.status, null);
+  }
 }
 
 function postJson(path: string, body: unknown): Promise<Response> {
@@ -51,19 +86,19 @@ function postJson(path: string, body: unknown): Promise<Response> {
 }
 
 export async function getOptions(): Promise<Options> {
-  return (await request('/api/options')).json() as Promise<Options>;
+  return json<Options>(await request('/api/options'));
 }
 
 export async function getHolidays(year: number): Promise<HolidaysResponse> {
-  return (await request(`/api/holidays?year=${year}`)).json() as Promise<HolidaysResponse>;
+  return json<HolidaysResponse>(await request(`/api/holidays?year=${year}`));
 }
 
 export async function parseHolidays(year: number, text: string): Promise<ParseResponse> {
-  return (await postJson('/api/holidays/parse', {year, text})).json() as Promise<ParseResponse>;
+  return json<ParseResponse>(await postJson('/api/holidays/parse', {year, text}));
 }
 
 export async function planLeaves(body: PlanRequest): Promise<PlanResponse> {
-  return (await postJson('/api/plan', body)).json() as Promise<PlanResponse>;
+  return json<PlanResponse>(await postJson('/api/plan', body));
 }
 
 /** Fetches the .ics for the same inputs and hands it to the browser as a download. */
@@ -76,5 +111,6 @@ export async function downloadCalendar(body: PlanRequest): Promise<void> {
   document.body.append(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Revoking synchronously can cancel the download in Safari and some Firefox versions.
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

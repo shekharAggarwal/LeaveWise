@@ -44,5 +44,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     restoreMocks: true,
+    // Far from UTC, so a date helper that used local time would show the wrong day (code review 9).
+    env: {TZ: 'America/Los_Angeles'},
   },
 });

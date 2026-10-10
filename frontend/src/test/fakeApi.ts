@@ -145,7 +145,17 @@ export interface Recorded {
   body: unknown;
 }
 
-type Handler = (url: string, body: unknown) => {status: number; json?: unknown; text?: string};
+type Reply = {status: number; json?: unknown; text?: string; rawText?: string};
+type Handler = (url: string, body: unknown) => Reply | Promise<Reply>;
+
+/** A response the test releases later, for race-condition tests. */
+export function deferred() {
+  let release!: (reply: Reply) => void;
+  const promise = new Promise<Reply>((resolve) => {
+    release = resolve;
+  });
+  return {promise, release};
+}
 
 /** Replaces global fetch; records every request. Unknown URLs fail the test loudly. */
 export function stubApi(overrides: Partial<Record<string, Handler>> = {}) {
@@ -179,9 +189,9 @@ export function stubApi(overrides: Partial<Record<string, Handler>> = {}) {
     const key = `${method} ${url.split('?')[0]}`;
     const handler = handlers[key];
     if (!handler) throw new Error(`Unexpected request in test: ${key}`);
-    const result = handler(url, body);
+    const result = await handler(url, body);
     const isProblem = result.status >= 400;
-    return new Response(result.text ?? JSON.stringify(result.json), {
+    return new Response(result.rawText ?? result.text ?? JSON.stringify(result.json), {
       status: result.status,
       headers: {
         'Content-Type': result.text
