@@ -1,0 +1,17 @@
+{
+  "testData": true,
+  "country": "IN",
+  "year": 2026,
+  "kind": "partner",
+  "list": "Fixture Company holidays 2026",
+  "source": {
+    "publisher": "Fixture Company",
+    "title": "Fixture HR holiday calendar 2026",
+    "url": "https://fixture-company.example/holidays",
+    "retrievedOn": "2026-10-10"
+  },
+  "holidays": [
+    {"date": "2026-01-01", "name": "Fixture Holiday 1"},
+    {"date": "2026-01-14", "name": "Fixture Floater 1", "optional": true}
+  ]
+}

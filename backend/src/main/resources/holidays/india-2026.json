@@ -1,0 +1,38 @@
+{
+  "country": "IN",
+  "year": 2026,
+  "kind": "company",
+  "list": "FiftyFive Technologies holidays 2026",
+  "source": {
+    "publisher": "FiftyFive Technologies Private Limited",
+    "title": "Holidays 2026, Keka holiday calendar (screenshot provided by the owner)",
+    "url": "https://fiftyfive.keka.com",
+    "retrievedOn": "2026-10-10"
+  },
+  "holidays": [
+    {"date": "2026-01-01", "name": "New Year's Day"},
+    {"date": "2026-01-14", "name": "Makar Sankranti/Pongal", "optional": true},
+    {"date": "2026-01-26", "name": "Republic Day"},
+    {"date": "2026-03-04", "name": "Holi"},
+    {"date": "2026-03-08", "name": "Rangpanchmi"},
+    {"date": "2026-03-21", "name": "Eid ul Fitr"},
+    {"date": "2026-03-26", "name": "Ram Navami", "optional": true},
+    {"date": "2026-03-31", "name": "Mahaveer Jayanti", "optional": true},
+    {"date": "2026-04-03", "name": "Good Friday", "optional": true},
+    {"date": "2026-04-14", "name": "Ambedkar Jayanti", "optional": true},
+    {"date": "2026-05-27", "name": "Eid Al Adha", "optional": true},
+    {"date": "2026-08-15", "name": "Independence Day"},
+    {"date": "2026-08-26", "name": "Onam", "optional": true},
+    {"date": "2026-08-28", "name": "Raksha Bandhan", "optional": true},
+    {"date": "2026-09-04", "name": "Janmashtami", "optional": true},
+    {"date": "2026-09-14", "name": "Ganesh Chaturthi", "optional": true},
+    {"date": "2026-10-02", "name": "Mahatama Gandhi Jayanti"},
+    {"date": "2026-10-19", "name": "Mahav Navmi/ Durga Pooja", "optional": true},
+    {"date": "2026-10-20", "name": "Dusshera"},
+    {"date": "2026-11-08", "name": "Diwali"},
+    {"date": "2026-11-11", "name": "Bhai Dooj", "optional": true},
+    {"date": "2026-11-15", "name": "Chhath Pooja"},
+    {"date": "2026-11-24", "name": "Guru Nanak Jayanti", "optional": true},
+    {"date": "2026-12-25", "name": "Christmas Day"}
+  ]
+}

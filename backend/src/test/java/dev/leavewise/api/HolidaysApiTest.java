@@ -22,7 +22,7 @@ class HolidaysApiTest extends ApiIntegrationTest {
     assertThat((String) r.at("$.source.retrievedOn")).isEqualTo("2026-10-20");
     assertThat((List<String>) r.at("$.holidays[*].date"))
         .as("one entry per date, in date order (docs/API.md example)")
-        .containsExactly("2027-03-04", "2027-06-10", "2027-08-27");
+        .containsExactly("2027-03-04", "2027-06-10", "2027-08-27", "2027-10-14");
   }
 
   @Test

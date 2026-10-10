@@ -5,6 +5,8 @@ export interface HolidayRow {
   date: IsoDate;
   names: string[];
   added: boolean; // added by the user rather than from the bundled list
+  /** A floater from a company list: listed, but a day off only when ticked. */
+  optional?: boolean;
 }
 
 export function addHoliday(rows: HolidayRow[], date: IsoDate, name: string): HolidayRow[] {

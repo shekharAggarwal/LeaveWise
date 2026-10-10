@@ -28,6 +28,8 @@ public final class HolidayRepository {
 
   private static final Pattern FILE_NAME = Pattern.compile("india-(\\d{4})\\.json");
   private static final JsonMapper JSON = JsonMapper.builder().build();
+  private static final String GOVERNMENT = "government";
+  private static final String COMPANY = "company";
 
   private final Map<Integer, HolidayList> byYear;
 
@@ -41,10 +43,11 @@ public final class HolidayRepository {
    *
    * @param allowTestData when false, a file marked {@code "testData": true} is refused; only tests
    *     pass true
-   * @throws IllegalStateException if a file can't be read or breaks a rule: {@code source.url} not
-   *     https on a gov.in or nic.in host (always checked, test data too), a date outside {@code
-   *     year}, a blank name, a file name year that differs from {@code year}, two files for one
-   *     year, or test data when not allowed
+   * @throws IllegalStateException if a file can't be read or breaks a rule: {@code kind} not
+   *     government or company; {@code source.url} not https, and for a government list not on a
+   *     gov.in or nic.in host (always checked, test data too); a date outside {@code year}; a blank
+   *     name; a file name year that differs from {@code year}, two files for one year, or test data
+   *     when not allowed
    */
   public static HolidayRepository load(String locationPattern, boolean allowTestData) {
     Resource[] resources;
@@ -85,14 +88,20 @@ public final class HolidayRepository {
     if (year != Integer.parseInt(m.group(1))) {
       throw new IllegalStateException(name + ": file name year differs from \"year\" " + year);
     }
+    String kind = root.has("kind") ? requireText(root, "kind", name) : GOVERNMENT;
+    if (!kind.equals(GOVERNMENT) && !kind.equals(COMPANY)) {
+      throw new IllegalStateException(name + ": \"kind\" must be government or company");
+    }
     JsonNode source = root.path("source");
+    String url = requireText(source, "url", name);
     HolidaySource holidaySource =
         new HolidaySource(
             requireText(source, "publisher", name),
             requireText(source, "title", name),
-            requireOfficialUrl(requireText(source, "url", name), name),
+            kind.equals(GOVERNMENT) ? requireOfficialUrl(url, name) : requireHttps(url, name),
             requireIsoDate(requireText(source, "retrievedOn", name), "retrievedOn", name));
     List<Holiday> holidays = new ArrayList<>();
+    List<Holiday> optional = new ArrayList<>();
     JsonNode items = root.path("holidays");
     if (!items.isArray()) {
       throw new IllegalStateException(name + ": \"holidays\" must be an array");
@@ -107,9 +116,14 @@ public final class HolidayRepository {
       if (date.getYear() != year) {
         throw new IllegalStateException(name + ": " + date + " is outside " + year);
       }
-      holidays.add(new Holiday(date, requireText(item, "name", name)));
+      Holiday holiday = new Holiday(date, requireText(item, "name", name));
+      holidays.add(holiday);
+      if (item.path("optional").asBoolean(false)) {
+        optional.add(holiday);
+      }
     }
-    return new HolidayList(year, requireText(root, "list", name), holidaySource, holidays);
+    return new HolidayList(
+        year, kind, requireText(root, "list", name), holidaySource, holidays, optional);
   }
 
   private static int requireInt(JsonNode node, String field, String file) {
@@ -136,6 +150,19 @@ public final class HolidayRepository {
       throw new IllegalStateException(
           file + ": \"" + field + "\" must be a date like 2026-10-20", e);
     }
+  }
+
+  /** A company list (ADR 0007 amendment) still names its source over https. */
+  private static String requireHttps(String url, String file) {
+    try {
+      URI uri = new URI(url);
+      if ("https".equals(uri.getScheme()) && uri.getHost() != null) {
+        return url;
+      }
+    } catch (URISyntaxException e) {
+      // falls through to the error below
+    }
+    throw new IllegalStateException(file + ": source.url must be https");
   }
 
   /** ADR 0007: only https addresses on gov.in or nic.in hosts count as an official source. */

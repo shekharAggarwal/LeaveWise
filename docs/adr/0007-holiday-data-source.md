@@ -1,6 +1,6 @@
 # 0007. Holiday data from an official Government of India source only
 
-Status: Accepted (2026-10-09)
+Status: Accepted (2026-10-09); amended 2026-10-10 (company list for 2026, see Amendment)
 
 ## Context
 
@@ -45,3 +45,20 @@ government list or a typical private-company list.
 - Until the laptop step, the app has no bundled list (`available: false`) and users add their own holidays.
 - The preloaded list fits central government staff exactly and is only a starting point for private employers; the
   reminder and the untick/add/paste controls cover the difference.
+
+## Amendment (2026-10-10): the owner's company list for 2026, floaters unticked
+
+The owner shared FiftyFive Technologies' 2026 holiday calendar from Keka (a screenshot) and asked to prefill it. Asked
+whether that fits this ADR's government-only rule, the owner chose to bundle it as a company list, with floater leaves
+listed but unticked (docs/ai/REVIEW_LOG.md, 2026-10-10). So:
+
+- A file may set `"kind": "company"` (default `"government"`). A company list's `source.url` must be https on any
+  host; a government list still needs a gov.in or nic.in host. Any other `kind` is refused at startup.
+- A holiday may set `"optional": true` (a floater). `GET /api/holidays` returns it with `optional: true`; the page
+  lists it unticked with a "Floater" tag. Floaters of an adjacent year never extend a break across 1 January
+  (ADR 0006), since nobody has chosen them.
+- `holidays/india-2026.json` is "FiftyFive Technologies holidays 2026": 24 holidays (11 fixed, 13 floaters),
+  transcribed from the owner's screenshot with names exactly as shown; every date's weekday was checked against the
+  weekday the screenshot shows (all 24 match). Source: FiftyFive Technologies Private Limited, Keka holiday calendar,
+  https://fiftyfive.keka.com, retrieved 2026-10-10.
+- 2027 has no bundled list yet; the government list (or the company's 2027 calendar) is still a laptop step.

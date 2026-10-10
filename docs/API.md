@@ -43,12 +43,14 @@ Defaults and limits for the form, computed from the server clock so the browser 
 
 ## `GET /api/holidays?year=2027`
 
-The bundled India public holiday list for one year. `year` must be one of `options.years`.
+The bundled holiday list for one year: an official government list, or (2026) the owner's company calendar
+(ADR 0007 amendment). `year` must be one of `options.years`.
 
 ```json
 {
   "year": 2027,
   "available": true,
+  "kind": "government",
   "list": "Example list name",
   "source": {
     "publisher": "Example publisher",
@@ -58,14 +60,21 @@ The bundled India public holiday list for one year. `year` must be one of `optio
   },
   "reminder": "Check this against your company's official holiday list.",
   "holidays": [
-    {"date": "2027-03-04", "names": ["Example Holiday A"]},
-    {"date": "2027-08-27", "names": ["Example Holiday B", "Example Holiday C"]}
+    {"date": "2027-03-04", "names": ["Example Holiday A"], "optional": false},
+    {"date": "2027-08-27", "names": ["Example Holiday B", "Example Holiday C"], "optional": false},
+    {"date": "2027-10-14", "names": ["Example Floater"], "optional": true}
   ]
 }
 ```
 
+- `kind` is `"government"` or `"company"`; `null` when no list is bundled.
+- `optional: true` marks a floater (company lists): every holiday on that date is optional. The page lists it
+  unticked; it counts only if the user ticks it and sends it in a plan request. Floaters of the adjacent years are
+  not used for year edges (ADR 0006).
+
 - A `year` outside `options.years`, or missing, gets `400` with `Pick {current} or {next}.`
-- When no bundled file exists for the year: `200` with `"available": false`, `"source": null` and `"holidays": []`,
+- When no bundled file exists for the year: `200` with `"available": false`, `"kind": null`, `"source": null` and
+  `"holidays": []`,
   so the user can still plan with their own holidays.
 - Two holidays on the same date are returned once with both names (PRD, Validation and errors).
 

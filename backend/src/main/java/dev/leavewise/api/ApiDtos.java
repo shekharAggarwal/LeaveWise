@@ -32,13 +32,17 @@ final class ApiDtos {
 
   record HolidayDayDto(LocalDate date, List<String> names) {}
 
+  /** A day of a bundled list; {@code optional} when every holiday on it is a floater. */
+  record BundledHolidayDto(LocalDate date, List<String> names, boolean optional) {}
+
   record HolidaysResponse(
       int year,
       boolean available,
+      String kind,
       String list,
       HolidaySource source,
       String reminder,
-      List<HolidayDayDto> holidays) {}
+      List<BundledHolidayDto> holidays) {}
 
   record ParsedHolidayDto(int line, LocalDate date, String name) {}
 

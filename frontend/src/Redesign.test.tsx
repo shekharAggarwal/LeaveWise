@@ -1,6 +1,6 @@
 // Behaviour added by the 2026-10-10 redesign (Claude Design canvas "LeaveWise UI redesign"): the leave-day
 // stepper, the summary figures, the empty results panel and the shorter-break-style suggestion.
-import {act, render, screen, within} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
@@ -205,5 +205,39 @@ describe('holiday adder and the list loading (code review)', () => {
     expect(screen.queryByRole('button', {name: 'Add one'})).toBeNull();
     await act(async () => list.release({status: 200, json: noHolidays2026}));
     expect(await screen.findByRole('button', {name: 'Add one'})).toBeInTheDocument();
+  });
+});
+
+describe('floater holidays in a company list (ADR 0007 amendment)', () => {
+  const companyList = {
+    ...holidays2027,
+    kind: 'company' as const,
+    list: 'Fixture Company holidays 2027',
+    holidays: [
+      {date: '2027-01-26', names: ['Fixture Holiday 1'], optional: false},
+      {date: '2027-03-04', names: ['Fixture Floater 1'], optional: true},
+    ],
+  };
+
+  it('lists a floater unticked with its tag, and plans without it until ticked', async () => {
+    const {calls} = stubApi({'GET /api/holidays': () => ({status: 200, json: companyList})});
+    const user = userEvent.setup();
+    render(<App />);
+    const floater = await screen.findByRole('checkbox', {name: /Fixture Floater 1/});
+    expect(floater).not.toBeChecked();
+    expect(screen.getByRole('checkbox', {name: /Fixture Holiday 1/})).toBeChecked();
+    expect(screen.getByText('Floater')).toBeInTheDocument();
+    expect(screen.getByText(/1 of 2 on/)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    await screen.findByRole('region', {name: /^Your \d{4} plan$/});
+    const first = calls.filter((c) => c.url === '/api/plan')[0]?.body as PlanRequest;
+    expect(first.holidays.map((h) => h.name)).toEqual(['Fixture Holiday 1']);
+
+    await user.click(floater);
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    await waitFor(() => expect(calls.filter((c) => c.url === '/api/plan')).toHaveLength(2));
+    const second = calls.filter((c) => c.url === '/api/plan')[1]?.body as PlanRequest;
+    expect(second.holidays.map((h) => h.name)).toEqual(['Fixture Holiday 1', 'Fixture Floater 1']);
   });
 });

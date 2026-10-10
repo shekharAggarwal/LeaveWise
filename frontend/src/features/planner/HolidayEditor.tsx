@@ -64,10 +64,13 @@ export function HolidaySource({
   load,
   rows,
   ticked,
+  showCount = false,
 }: {
   load: HolidayLoad;
   rows: HolidayRow[];
   ticked: Set<IsoDate>;
+  /** The phone sheet repeats "6 of 6 on" here; on desktop it is in the Holidays header. */
+  showCount?: boolean;
 }) {
   const source = load.state === 'ready' ? load.value : null;
   if (!source) return null;
@@ -82,7 +85,7 @@ export function HolidaySource({
           ({source.source.publisher}).{' '}
         </>
       ) : null}
-      {rows.length > 0 ? `${countOn(rows, ticked)}. ` : ''}
+      {showCount && rows.length > 0 ? `${countOn(rows, ticked)}. ` : ''}
       {source.reminder}
     </Text>
   );
@@ -145,7 +148,13 @@ export function HolidayList({
               </Text>
             }
             description={formatDay(row.date)}
-            endContent={row.added ? <Badge variant="neutral" label="Added" /> : undefined}
+            endContent={
+              row.added ? (
+                <Badge variant="neutral" label="Added" />
+              ) : row.optional ? (
+                <Badge variant="neutral" label="Floater" />
+              ) : undefined
+            }
           />
         ))}
       </CheckboxList>

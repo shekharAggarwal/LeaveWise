@@ -133,4 +133,45 @@ class HolidayRepositoryTest {
         .as("a file that can't be read stops startup instead of being skipped")
         .isInstanceOf(IllegalStateException.class);
   }
+
+  // ADR 0007 amendment (2026-10-10): the owner's company list is bundled for 2026.
+
+  @Test
+  void aCompanyListLoadsWithAnyHttpsSourceAndMarksItsFloatersOptional() {
+    HolidayList list = loadFixtures("company").forYear(2026).orElseThrow();
+
+    assertThat(list.kind()).isEqualTo("company");
+    assertThat(list.source().url()).isEqualTo("https://fixture-company.example/holidays");
+    assertThat(list.holidays())
+        .containsExactly(
+            new Holiday(LocalDate.of(2026, 1, 1), "Fixture Holiday 1"),
+            new Holiday(LocalDate.of(2026, 1, 14), "Fixture Floater 1"));
+    assertThat(list.optional())
+        .as("floaters are listed but not days off unless the user ticks them")
+        .containsExactly(new Holiday(LocalDate.of(2026, 1, 14), "Fixture Floater 1"));
+    assertThat(list.fixedHolidays())
+        .containsExactly(new Holiday(LocalDate.of(2026, 1, 1), "Fixture Holiday 1"));
+  }
+
+  @Test
+  void aGovernmentListIsTheDefaultKindAndHasNoOptionalHolidays() {
+    HolidayList list = loadFixtures("valid").forYear(2027).orElseThrow();
+
+    assertThat(list.kind()).isEqualTo("government");
+    assertThat(list.optional()).isEmpty();
+  }
+
+  @Test
+  void aCompanyListStillNeedsAnHttpsSource() {
+    assertThatThrownBy(() -> loadFixtures("company-http"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("source.url must be https");
+  }
+
+  @Test
+  void anUnknownKindIsRefused() {
+    assertThatThrownBy(() -> loadFixtures("bad-kind"))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("\"kind\" must be government or company");
+  }
 }

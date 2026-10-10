@@ -24,13 +24,20 @@ export interface HolidayDay {
   names: string[];
 }
 
+/** A day of a bundled list; `optional` when every holiday on it is a floater (shown unticked). */
+export interface BundledHolidayDay extends HolidayDay {
+  optional: boolean;
+}
+
 export interface HolidaysResponse {
   year: number;
   available: boolean;
+  /** "company" for the owner's company calendar, "government" for an official list; null when none. */
+  kind: 'government' | 'company' | null;
   list: string | null;
   source: {publisher: string; title: string; url: string; retrievedOn: IsoDate} | null;
   reminder: string;
-  holidays: HolidayDay[];
+  holidays: BundledHolidayDay[];
 }
 
 export interface ParseResponse {

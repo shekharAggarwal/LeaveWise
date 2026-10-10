@@ -10,9 +10,26 @@
     "retrievedOn": "2026-10-20"
   },
   "holidays": [
-    {"date": "2027-03-04", "name": "Fixture Holiday 1"},
-    {"date": "2027-06-10", "name": "Fixture Holiday 4"},
-    {"date": "2027-08-27", "name": "Fixture Holiday 2"},
-    {"date": "2027-08-27", "name": "Fixture Holiday 3"}
+    {
+      "date": "2027-03-04",
+      "name": "Fixture Holiday 1"
+    },
+    {
+      "date": "2027-06-10",
+      "name": "Fixture Holiday 4"
+    },
+    {
+      "date": "2027-08-27",
+      "name": "Fixture Holiday 2"
+    },
+    {
+      "date": "2027-08-27",
+      "name": "Fixture Holiday 3"
+    },
+    {
+      "date": "2027-10-14",
+      "name": "Fixture Floater 2027",
+      "optional": true
+    }
   ]
 }

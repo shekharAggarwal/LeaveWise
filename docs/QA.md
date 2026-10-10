@@ -105,6 +105,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Phone: break rows keep days off per leave (PRD Must), holidays sheet, failed plan returns to inputs, arrow keys across months, day sheet, a paste finishing after the sheet closes | `PhoneFlow.test` (6 more) | passing |
 | Tapped-day text for every kind (break, holiday with " · " in its name, free long weekend, past day) | `describeDay.test` (4) | passing |
 | A year switch closes the holiday adder; no adder while the list loads | `Redesign.test#holiday adder and the list loading` | passing |
+| Company list and floaters (ADR 0007 amendment): `kind`, https source, floaters `optional`, unticked with a "Floater" tag, not used for year edges | `HolidayRepositoryTest` (4 new), `FloaterHolidaysApiTest` (2), `Redesign.test#floater holidays` | passing |
 | Results panel says what it will hold before the first plan | `Redesign.test#shows what the panel will hold…` (with axe) | passing |
 | Stepper rule (whitespace, leading zeros, decimals, 20 digits, 0 and 60) | `validation.test#stepLeaveDays` (13) | passing |
 | Days off per leave rounds half up like the server | `figures.test#daysOffPerLeave` (5, incl. 43 / 20 = 2.2) | passing |

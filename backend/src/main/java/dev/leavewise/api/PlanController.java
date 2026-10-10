@@ -62,10 +62,10 @@ class PlanController {
     PlanYears years = PlanYears.now(clock);
     PlanRequest request = PlanInputs.parse(body, years);
     // Year edges (ADR 0006): bundled holidays of the adjacent years extend breaks across 1 Jan and
-    // 31 Dec.
+    // 31 Dec. Floaters don't: nobody has chosen them for that year (ADR 0007 amendment).
     List<Holiday> all = new ArrayList<>(request.holidays());
-    holidays.forYear(request.year() - 1).map(HolidayList::holidays).ifPresent(all::addAll);
-    holidays.forYear(request.year() + 1).map(HolidayList::holidays).ifPresent(all::addAll);
+    holidays.forYear(request.year() - 1).map(HolidayList::fixedHolidays).ifPresent(all::addAll);
+    holidays.forYear(request.year() + 1).map(HolidayList::fixedHolidays).ifPresent(all::addAll);
     return planner.plan(
         new PlanRequest(
             request.year(), request.leaveDays(), request.weeklyOffs(), request.breakStyle(), all),

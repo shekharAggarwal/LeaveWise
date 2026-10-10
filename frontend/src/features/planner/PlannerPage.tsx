@@ -277,8 +277,16 @@ export function PlannerPage() {
       (value) => {
         if (!current) return;
         setHolidays({state: 'ready', value});
-        setRows(value.holidays.map((h) => ({date: h.date, names: h.names, added: false})));
-        setTicked(new Set(value.holidays.map((h) => h.date)));
+        setRows(
+          value.holidays.map((h) => ({
+            date: h.date,
+            names: h.names,
+            added: false,
+            optional: h.optional,
+          })),
+        );
+        // Floaters start unticked: they are days off only for people who pick them.
+        setTicked(new Set(value.holidays.filter((h) => !h.optional).map((h) => h.date)));
       },
       (e: unknown) => {
         if (current) setHolidays({state: 'error', message: messageOf(e)});
@@ -611,7 +619,7 @@ export function PlannerPage() {
             <Heading level={2}>Holidays in {year}</Heading>
             <Button label="Done" variant="link" onClick={() => setSheetOpen(false)} />
           </HStack>
-          <HolidaySource load={holidays} rows={rows} ticked={ticked} />
+          <HolidaySource load={holidays} rows={rows} ticked={ticked} showCount />
           {holidayList}
           {noList && year !== null && <NoListPanel year={year} onStart={setAddMode} />}
           {year !== null && holidays.state === 'ready' && (

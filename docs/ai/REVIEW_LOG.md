@@ -22,3 +22,10 @@ indigo accent Stone doesn't have"), owner's answer: Indigo custom theme
 ## 2026-10-10 (after the first redesign build)
 
 nothing is matching we built in artifact so can you do only light theme work and match the UI end to end
+
+## 2026-10-10 (holiday list for 2026)
+
+[screenshot of the FiftyFive Technologies 2026 holiday calendar in Keka] these are the leave for this year you can pre fill
+
+Answers to two questions: "How should this FiftyFive 2026 list be added, given ADR 0007's government-only rule?" →
+Bundle as company list. "How should the 14 floater leaves be handled?" → Listed, unticked.

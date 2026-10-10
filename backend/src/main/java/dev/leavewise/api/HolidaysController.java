@@ -1,5 +1,6 @@
 package dev.leavewise.api;
 
+import dev.leavewise.api.ApiDtos.BundledHolidayDto;
 import dev.leavewise.api.ApiDtos.HolidaysResponse;
 import dev.leavewise.api.ApiDtos.LineErrorDto;
 import dev.leavewise.api.ApiDtos.ParseResponse;
@@ -7,10 +8,14 @@ import dev.leavewise.api.ApiDtos.ParsedHolidayDto;
 import dev.leavewise.holidays.HolidayList;
 import dev.leavewise.holidays.HolidayPasteParser;
 import dev.leavewise.holidays.HolidayRepository;
+import dev.leavewise.planner.Holiday;
 import dev.leavewise.planner.HolidayDay;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,15 +43,21 @@ class HolidaysController {
     int y = requireYear(year);
     Optional<HolidayList> list = repository.forYear(y);
     if (list.isEmpty()) {
-      return new HolidaysResponse(y, false, null, null, REMINDER, List.of());
+      return new HolidaysResponse(y, false, null, null, null, REMINDER, List.of());
     }
+    HolidayList bundled = list.get();
+    Set<LocalDate> fixedDates =
+        bundled.fixedHolidays().stream().map(Holiday::date).collect(Collectors.toSet());
     return new HolidaysResponse(
         y,
         true,
-        list.get().list(),
-        list.get().source(),
+        bundled.kind(),
+        bundled.list(),
+        bundled.source(),
         REMINDER,
-        PlanMapper.holidays(HolidayDay.merge(list.get().holidays())));
+        HolidayDay.merge(bundled.holidays()).stream()
+            .map(d -> new BundledHolidayDto(d.date(), d.names(), !fixedDates.contains(d.date())))
+            .toList());
   }
 
   @PostMapping("/api/holidays/parse")

@@ -28,6 +28,7 @@ export const options: Options = {
 export const holidays2027: HolidaysResponse = {
   year: 2027,
   available: true,
+  kind: 'government',
   list: 'Fixture list',
   source: {
     publisher: 'Fixture publisher',
@@ -37,15 +38,16 @@ export const holidays2027: HolidaysResponse = {
   },
   reminder: "Check this against your company's official holiday list.",
   holidays: [
-    {date: '2027-01-26', names: ['Fixture Holiday 1']},
-    {date: '2027-03-04', names: ['Fixture Holiday 2']},
-    {date: '2027-08-27', names: ['Fixture Holiday 3', 'Fixture Holiday 4']},
+    {date: '2027-01-26', names: ['Fixture Holiday 1'], optional: false},
+    {date: '2027-03-04', names: ['Fixture Holiday 2'], optional: false},
+    {date: '2027-08-27', names: ['Fixture Holiday 3', 'Fixture Holiday 4'], optional: false},
   ],
 };
 
 export const noHolidays2026: HolidaysResponse = {
   year: 2026,
   available: false,
+  kind: null,
   list: null,
   source: null,
   reminder: "Check this against your company's official holiday list.",

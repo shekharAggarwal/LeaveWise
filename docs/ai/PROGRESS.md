@@ -239,7 +239,7 @@ in name, day-sheet heading split, sheet reopening after a resize, doubled unused
 Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px in four states each.
 
 ## Laptop phase (ends at STOP 4)
-- [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO
+- [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO (2026 done as the owner's FiftyFive company list, ADR 0007 amendment: 24 holidays, 11 fixed and 13 floaters; the question to the owner said 15 and 14 by mistake; 2027 still open)
 - [ ] LAPTOP: run the app locally, check every screen at phone and desktop widths, fix, save screenshots
 - [ ] LAPTOP: quality-gate, commit and push
 - [ ] STOP 4: remaining human steps in order

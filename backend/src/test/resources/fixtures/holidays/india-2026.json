@@ -10,8 +10,22 @@
     "retrievedOn": "2026-01-05"
   },
   "holidays": [
-    {"date": "2026-05-14", "name": "Fixture Holiday 5"},
-    {"date": "2026-11-09", "name": "Fixture Holiday 6"},
-    {"date": "2026-11-09", "name": "Fixture Holiday 7"}
+    {
+      "date": "2026-05-14",
+      "name": "Fixture Holiday 5"
+    },
+    {
+      "date": "2026-11-09",
+      "name": "Fixture Holiday 6"
+    },
+    {
+      "date": "2026-11-09",
+      "name": "Fixture Holiday 7"
+    },
+    {
+      "date": "2026-12-31",
+      "name": "Fixture Floater 2026",
+      "optional": true
+    }
   ]
 }
