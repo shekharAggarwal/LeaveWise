@@ -6,7 +6,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 import type {PlanRequest} from './api/types';
 import {expectNoAxeViolations} from './test/axe';
-import {deferred, plan2027, stubApi} from './test/fakeApi';
+import {deferred, holidays2027, noHolidays2026, plan2027, stubApi} from './test/fakeApi';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -187,5 +187,23 @@ describe('no break possible', () => {
     expect(screen.getByRole('button', {name: 'Try Long weekends'})).toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Try Short trips'})).not.toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Try Big trips'})).not.toBeInTheDocument();
+  });
+});
+
+describe('holiday adder and the list loading (code review)', () => {
+  it('a year switch closes the adder, and it is not offered while the list loads', async () => {
+    const list = deferred();
+    stubApi({
+      'GET /api/holidays': (url) =>
+        url.includes('2026') ? list.promise : {status: 200, json: holidays2027},
+    });
+    const {user} = await renderLoaded();
+    await user.click(screen.getByRole('button', {name: 'Edit list'}));
+    expect(screen.getByRole('button', {name: 'Add holiday'})).toBeInTheDocument();
+    await user.click(screen.getByRole('radio', {name: '2026'}));
+    expect(screen.queryByRole('button', {name: 'Add holiday'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Add one'})).toBeNull();
+    await act(async () => list.release({status: 200, json: noHolidays2026}));
+    expect(await screen.findByRole('button', {name: 'Add one'})).toBeInTheDocument();
   });
 });

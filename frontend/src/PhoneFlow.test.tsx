@@ -1,13 +1,13 @@
 // The canvas's phone screens (Claude Design "LeaveWise UI redesign"): inputs, then results with "Edit inputs", the
 // Breaks / Calendar switch and one month at a time. One page, one URL (PRD).
-import {render, screen, within} from '@testing-library/react';
+import {act, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 import type {PlanRequest} from './api/types';
 import {PHONE_QUERY} from './lib/useIsPhone';
 import {expectNoAxeViolations} from './test/axe';
-import {stubApi} from './test/fakeApi';
+import {deferred, problem, stubApi} from './test/fakeApi';
 
 const original = window.matchMedia;
 
@@ -33,7 +33,7 @@ afterEach(() => {
 async function renderPhone() {
   const user = userEvent.setup();
   const view = render(<App />);
-  await screen.findByRole('button', {name: /^Holidays: 3 of 3 on/});
+  await screen.findByRole('button', {name: /^Holidays 3 of 3 on/});
   return {user, view};
 }
 
@@ -106,5 +106,98 @@ describe('phone: results screen', () => {
     await user.click(screen.getByRole('button', {name: /^December: /}));
     expect(screen.getByRole('heading', {name: 'December 2027'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Next month'})).toBeDisabled();
+  });
+});
+
+describe('phone: sheets, keyboard and errors (code review)', () => {
+  it('each break row keeps its days off per leave (PRD, Results: Must)', async () => {
+    stubApi();
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    const breaks = await screen.findByRole('list', {name: 'Your breaks'});
+    const [first] = within(breaks).getAllByRole('listitem');
+    expect(first).toHaveTextContent('4.0 days off per leave');
+  });
+
+  it('the holidays sheet lists the holidays and lets you untick one', async () => {
+    const {calls} = stubApi();
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: /^Holidays 3 of 3 on/}));
+    const one = await screen.findByRole('checkbox', {name: /Fixture Holiday 1/});
+    await user.click(one);
+    await user.click(screen.getByRole('button', {name: 'Done'}));
+    expect(screen.getByRole('button', {name: /^Holidays 2 of 3 on/})).toBeInTheDocument();
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    await screen.findByRole('region', {name: 'Your 2027 plan'});
+    const request = calls.find((c) => c.url === '/api/plan')?.body as PlanRequest;
+    expect(request.holidays.map((h) => h.name)).not.toContain('Fixture Holiday 1');
+  });
+
+  it('a failed plan goes back to the inputs with the error', async () => {
+    stubApi({
+      'POST /api/plan': () => ({
+        status: 500,
+        json: problem(500, 'Something went wrong on our side. Try again.'),
+      }),
+    });
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    expect(
+      await screen.findAllByText('Something went wrong on our side. Try again.'),
+    ).not.toHaveLength(0);
+    expect(screen.getByRole('textbox', {name: 'Leave days'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'Edit inputs'})).toBeNull();
+  });
+
+  it('arrow keys move between days in the month view, across months too', async () => {
+    stubApi();
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    await screen.findByRole('region', {name: 'Your 2027 plan'});
+    await user.click(screen.getByRole('radio', {name: 'Calendar'}));
+    const first = screen.getByRole('button', {name: /^Mon, 1 Mar: /});
+    expect(first).toHaveAttribute('tabindex', '0');
+    first.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('button', {name: /^Tue, 2 Mar: /})).toHaveFocus();
+    await user.keyboard('{ArrowLeft}{ArrowLeft}');
+    expect(screen.getByRole('heading', {name: 'February 2027'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /^Sun, 28 Feb: /})).toHaveFocus();
+  });
+
+  it('tapping a day opens a sheet that says what it is', async () => {
+    stubApi();
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
+    await screen.findByRole('region', {name: 'Your 2027 plan'});
+    await user.click(screen.getByRole('radio', {name: 'Calendar'}));
+    await user.click(screen.getByRole('button', {name: /^Fri, 5 Mar: leave day/}));
+    expect(await screen.findByRole('heading', {name: 'Fri, 5 Mar'})).toBeInTheDocument();
+    expect(
+      screen.getByText('Break 1: Thu, 4 Mar – Sun, 7 Mar, 4 days off with Fixture Holiday 2'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('holidays added while the list is not ready (code review)', () => {
+  it('a paste that finishes after the sheet closes still adds its holidays', async () => {
+    const paste = deferred();
+    stubApi({'POST /api/holidays/parse': () => paste.promise});
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('button', {name: /^Holidays 3 of 3 on/}));
+    await user.click(await screen.findByRole('radio', {name: 'Paste a list'}));
+    await user.type(
+      screen.getByRole('textbox', {name: /One holiday per line/}),
+      '2027-11-15 Fixture Company Day',
+    );
+    await user.click(screen.getByRole('button', {name: 'Load holidays'}));
+    await user.click(screen.getByRole('button', {name: 'Done'}));
+    await act(async () => {
+      paste.release({
+        status: 200,
+        json: {holidays: [{line: 1, date: '2027-11-15', name: 'Fixture Company Day'}], errors: []},
+      });
+    });
+    expect(await screen.findByRole('button', {name: /^Holidays 4 of 4 on/})).toBeInTheDocument();
   });
 });

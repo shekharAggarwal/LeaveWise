@@ -1,5 +1,6 @@
 import {useMemo, useRef, useState, type KeyboardEvent, type Ref} from 'react';
 import * as stylex from '@stylexjs/stylex';
+import {canvasVars} from '../../theme/canvas.stylex';
 import {Card} from '@astryxdesign/core/Card';
 import {Grid} from '@astryxdesign/core/Grid';
 import {HStack, VStack} from '@astryxdesign/core/Layout';
@@ -53,15 +54,15 @@ const cellStyles = stylex.create({
   // Desktop: 28 px cells, number and letter side by side.
   small: {
     height: spacingVars['--spacing-7'],
-    gap: '1px',
-    borderRadius: '6px',
+    gap: canvasVars.hairline,
+    borderRadius: canvasVars.radiusCell,
     fontSize: textSizeVars['--font-size-sm'],
   },
   // Phone: 44 px touch targets, the letter under the number (canvas).
   large: {
     height: spacingVars['--spacing-11'],
     flexDirection: 'column',
-    borderRadius: '10px',
+    borderRadius: canvasVars.radiusChip,
     fontSize: textSizeVars['--font-size-base'],
     lineHeight: 1.1,
   },
@@ -98,7 +99,7 @@ const COLUMN_START = [
 
 const styles = stylex.create({
   panel: {
-    borderRadius: '14px',
+    borderRadius: canvasVars.radiusTile,
     backgroundColor: colorVars['--color-accent-muted'],
     paddingBlock: spacingVars['--spacing-3'],
     paddingInline: spacingVars['--spacing-4'],
@@ -196,7 +197,9 @@ export function DayPanel({day, plan}: {day: CalendarDay | undefined; plan: PlanR
     <HStack gap={3} vAlign="center" xstyle={styles.panel} role="status" aria-live="polite">
       {code && <DaySquare code={code} size="md" />}
       <VStack gap={0.5}>
-        <Text weight="bold">{detail ? detail.title : 'Tap a day to see what it is.'}</Text>
+        <Text weight="bold">
+          {detail ? `${detail.heading} · ${detail.kind}` : 'Tap a day to see what it is.'}
+        </Text>
         <Text type="small" color="secondary">
           {detail ? detail.detail : 'Arrow keys move between days.'}
         </Text>

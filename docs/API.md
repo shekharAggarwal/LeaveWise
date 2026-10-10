@@ -237,17 +237,17 @@ responses above are unchanged; PRD messages stay word for word.
 | Leave-day stepper | "One fewer leave day", "One more leave day" (button names); "0 to 60" (desktop), "Whole number from 0 to 60." (phone) |
 | Break styles | "3 or more days off", "5 or more days off", "9 or more days off" |
 | Holidays (desktop) | "Holidays · {n} of {m} on", "Edit list" / "Done" |
-| Holidays (phone) | Row: "Holidays", "{n} of {m} on · tap to review or add"; sheet: "Holidays in {year}", "Done" |
+| Holidays (phone) | Row: "Holidays", "{n} of {m} on · tap to review or add" (its name: "Holidays {n} of {m} on · tap to review or add"); sheet: "Holidays in {year}", "Done" |
 | No bundled list | "No official list for {year} is bundled yet." / "Add your company's holidays below, one by one or as a pasted list." / "Add one", "Paste a list" |
 | Adding holidays | Tabs "Add one", "Paste a list"; "Holiday date", "Holiday name", "Add holiday"; "One holiday per line: date, then name" / "Up to 50 lines, like {year}-01-26 Republic Day", "Load holidays"; result "{n} holidays added. {k} lines didn't load." then "Line {n}: {reason}" |
 | Phone plan bar | "{year} · {n} leaves · {weekly offs} off · {break style}"; after a plan, "See your plan" |
 | Results before the first plan (desktop) | "Your plan shows here" / "Tap Plan my leaves to see your breaks, the days off they give and the whole year on a calendar." |
-| Summary | "Your {year} plan"; "{n} leaves → {d} days off"; "across {b} breaks. Every leave is used." or "… {u} leaves unused."; figures "Leaves used" ("{n} of {balance}"), "Days off in breaks", "Breaks", "Days off per leave" (rounded half up like each break's `daysOffPerLeave`; the phone shows the last two); "Add to calendar (.ics)" |
+| Summary | "Your {year} plan"; "{n} leaves → {d} days off"; "across {b} breaks. Every leave is used." or "… {u} leaves unused." (just "across {b} breaks." when the `LEAVES_LEFT_OVER` note follows); figures "Leaves used" ("{n} of {balance}"), "Days off in breaks", "Breaks", "Days off per leave" (rounded half up like each break's `daysOffPerLeave`; the phone shows the last two); "Add to calendar (.ics)" |
 | 0 leave days | "{n} free long weekend(s)" with the `NO_LEAVE_USED` note, then "Free long weekends" |
 | `NO_BREAK_POSSIBLE` | The note, then one button per shorter style: "Try Short trips", "Try Long weekends" (a tap plans again with it; disabled while a plan or the holiday list is loading; an invalid input sends nothing and keeps the style); "{u} leaves unused." |
 | Inputs changed | "Inputs changed. Tap Plan my leaves to update this plan." with "Plan again" |
-| Breaks | "Your breaks", "In date order"; a row: dates, "{d} days off · leave {dates}", holidays or "—", "{ratio}" "per leave"; phone: "Leave {dates} · {holidays}", "{d}" "days off", "Show all {n} breaks" / "Show fewer breaks" |
-| Calendar | "{year} at a glance" (desktop), "{Month} {year}" with "Previous month" / "Next month" and month chips (phone); legend "Leave", "Holiday", "Weekly off", "In a break" ("Free long weekend" with 0 leaves); day panel "{Fri, 5 Mar} · {Leave day / Holiday, name / Weekly off / Working day}" and "Break {n}: {range}, {d} days off with {holidays}", "Free long weekend: {range}", "Already passed, so it is not planned.", "Not part of a break."; before a tap "Tap a day to see what it is." / "Arrow keys move between days." |
+| Breaks | "Your breaks", "In date order"; a row: dates, "{d} days off · leave {dates}", holidays or "—", "{ratio}" "per leave"; phone: "Leave {dates} · {holidays} · {ratio} days off per leave" (the ratio is a PRD Must, so it stays although the phone canvas leaves it out), "{d}" "days off", "Show all {n} breaks" / "Show fewer breaks" |
+| Calendar | "{year} at a glance" (desktop), "{Month} {year}" with "Previous month" / "Next month" and month chips (phone); legend "Leave", "Holiday", "Weekly off", "In a break" ("Free long weekend" with 0 leaves); day panel "{Fri, 5 Mar} · {Leave day / Holiday, name / Weekly off / Working day}" and "Break {n}: {range}, {d} days off with {holidays}", "Free long weekend: {range}", "Already passed, so it is not planned.", "Not part of a break."; the phone day sheet shows the date as its heading, the kind under it, and "Close"; before a tap "Tap a day to see what it is." / "Arrow keys move between days." |
 
 ## `GET /actuator/health`
 

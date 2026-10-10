@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState, type KeyboardEvent} from 'react';
 import * as stylex from '@stylexjs/stylex';
 import {BottomSheet} from '@astryxdesign/core/BottomSheet';
 import {Button} from '@astryxdesign/core/Button';
@@ -16,9 +16,10 @@ import {
   spacingVars,
   textSizeVars,
 } from '@astryxdesign/core/theme/tokens.stylex';
+import {canvasVars} from '../../theme/canvas.stylex';
 import type {BreakStyleId, CalendarDay, IsoDate, PlanRequest, PlanResponse} from '../../api/types';
 import {formatRange, monthOf} from '../../lib/dates';
-import {breakDays} from '../shared/dayCodes';
+import {addDays, breakDays} from '../shared/dayCodes';
 import {DaySquare, DayStrip} from '../shared/days';
 import {dayCode, dayDetail} from './describeDay';
 import {holidayNames, leaveList} from './format';
@@ -77,10 +78,10 @@ const styles = stylex.create({
   chip: {
     appearance: 'none',
     flex: 'none',
-    minWidth: '52px',
+    minWidth: canvasVars.chipMinWidth,
     minHeight: spacingVars['--spacing-11'],
     paddingBlock: spacingVars['--spacing-1-5'],
-    borderRadius: '10px',
+    borderRadius: canvasVars.radiusChip,
     borderWidth: borderVars['--border-width'],
     borderStyle: 'solid',
     borderColor: colorVars['--color-border'],
@@ -192,7 +193,8 @@ export function PhoneResults({
                             <Text weight="bold">{formatRange(b.start, b.end, plan.year)}</Text>
                             <Text type="small" color="secondary">
                               Leave {leaveList(b, plan.year)}
-                              {b.holidays.length > 0 ? ` · ${holidayNames(b.holidays)}` : ''}
+                              {b.holidays.length > 0 ? ` · ${holidayNames(b.holidays)}` : ''} ·{' '}
+                              {b.daysOffPerLeave.toFixed(1)} days off per leave
                             </Text>
                           </VStack>
                           <VStack xstyle={styles.days}>
@@ -243,7 +245,36 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
   const selectedDay: CalendarDay | undefined = selected ? byDate.get(selected) : undefined;
   const detail = selectedDay ? dayDetail(selectedDay, plan) : null;
   const code = selectedDay ? dayCode(selectedDay) : null;
-  const firstFocusable = days.find((d) => d.planned)?.date ?? days[0]?.date;
+  // Roving focus like the year view: one day is the Tab stop; arrow keys move, across months too.
+  const [focused, setFocused] = useState<IsoDate | null>(null);
+  const buttons = useRef(new Map<IsoDate, HTMLButtonElement>());
+  const pendingFocus = useRef<IsoDate | null>(null);
+  const tabStop =
+    focused && monthOf(focused) === month + 1
+      ? focused
+      : (days.find((d) => d.planned)?.date ?? days[0]?.date);
+
+  useEffect(() => {
+    if (pendingFocus.current) {
+      buttons.current.get(pendingFocus.current)?.focus();
+      pendingFocus.current = null;
+    }
+  });
+
+  const move = (event: KeyboardEvent, from: IsoDate) => {
+    const step: Record<string, number> = {ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7};
+    if (!(event.key in step)) return;
+    const target = addDays(from, step[event.key] ?? 0);
+    if (!byDate.has(target)) return;
+    event.preventDefault();
+    setFocused(target);
+    if (monthOf(target) !== month + 1) {
+      setMonth(monthOf(target) - 1);
+      pendingFocus.current = target;
+    } else {
+      buttons.current.get(target)?.focus();
+    }
+  };
 
   return (
     <Card padding={4}>
@@ -300,9 +331,16 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
               size="large"
               isFirstOfMonth={day === days[0]}
               isSelected={day.date === selected}
-              isTabStop={day.date === firstFocusable}
-              buttonRef={null}
-              onSelect={() => setSelected(day.date)}
+              isTabStop={day.date === tabStop}
+              buttonRef={(el) => {
+                if (el) buttons.current.set(day.date, el);
+                else buttons.current.delete(day.date);
+              }}
+              onSelect={() => {
+                setSelected(day.date);
+                setFocused(day.date);
+              }}
+              onKeyDown={(e) => move(e, day.date)}
             />
           ))}
         </Grid>
@@ -311,7 +349,7 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
       <BottomSheet
         isOpen={selectedDay !== undefined}
         onOpenChange={(open) => !open && setSelected(null)}
-        label={detail?.title ?? 'Day'}
+        label={detail ? `${detail.heading}: ${detail.kind}` : 'Day'}
         height="hug"
         padding={5}
       >
@@ -321,9 +359,9 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
               {code && <DaySquare code={code} size="lg" />}
               <VStack gap={0.5}>
                 <Heading level={2} type="card">
-                  {detail.title.split(' · ')[0]}
+                  {detail.heading}
                 </Heading>
-                <Text color="secondary">{detail.title.split(' · ')[1]}</Text>
+                <Text color="secondary">{detail.kind}</Text>
               </VStack>
             </HStack>
             <VStack xstyle={styles.tint}>

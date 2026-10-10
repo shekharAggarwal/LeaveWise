@@ -255,3 +255,15 @@ Template:
   server's rounding.
 - Rule added: none; CLAUDE.md already has it (AI failure 16: a rule in both the browser and the server is one rule,
   same counting). It was not applied to a new derived number.
+
+## 20. The phone break list followed the canvas and dropped a PRD Must (2026-10-10)
+- What the AI got wrong (commit `86b24d6`, `frontend/src/features/results/PhoneResults.tsx`): the phone break rows
+  copied the canvas (dates, days off, leave dates, holidays) and left out "days off per leave", which the PRD's
+  Results table lists as a Must for every break. docs/API.md even recorded the omission as copy.
+- How it was caught: code-reviewer subagent on `86b24d6`.
+- Fix: each phone row ends with "{ratio} days off per leave"; `PhoneFlow.test#each break row keeps its days off per
+  leave` failed before the fix. Committed with the review fixes.
+- Root cause: "match the canvas end to end" was applied field by field without checking each screen against the PRD's
+  Must list; the canvas is a visual spec, the PRD is the contract.
+- Rule added: frontend/CLAUDE.md: when a design and the PRD disagree, the PRD wins; check each results screen against
+  the PRD's Must fields.

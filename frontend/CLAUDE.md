@@ -17,6 +17,8 @@ Loaded only when working on files in `frontend/`. Root rules in `../CLAUDE.md` s
   with contrast). (AI failures 13 and 17)
 - The built page must load under the production CSP with no violations: keep `scripts/check-dist-csp.mjs` in the
   build, and load the jar in Chromium after adding a component that injects styles. (AI failure 14)
+- A design (the Claude Design canvas) is the visual spec, the PRD is the contract: when they disagree the PRD wins.
+  Check every results screen, phone and desktop, against the PRD's Must fields. (AI failure 20)
 - The block below is managed by `astryx init`. Never edit inside it.
 
 <!-- ASTRYX:START -->

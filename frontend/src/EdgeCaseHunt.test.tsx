@@ -83,7 +83,8 @@ describe('PRD edge cases in the results (no UI test before)', () => {
     show(plan, 5);
 
     expect(screen.getByText('3 leaves → 5 days off')).toBeInTheDocument();
-    expect(screen.getByText('across 1 break. 2 leaves unused.')).toBeInTheDocument();
+    // The unused count is in the LEAVES_LEFT_OVER note below, so the summary line doesn't repeat it.
+    expect(screen.getByText('across 1 break.')).toBeInTheDocument();
     expect(
       screen.getByText('2 leaves left over: every working day is already a leave day.'),
     ).toBeInTheDocument();

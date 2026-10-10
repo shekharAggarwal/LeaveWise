@@ -177,12 +177,12 @@ interface AdderProps {
   mode: AddMode;
   onModeChange: (mode: AddMode) => void;
   /** Adds holidays to the latest rows (functional update in the parent) and ticks their dates. */
-  onAdd: (holidays: {date: IsoDate; name: string}[]) => void;
+  onAdd: (holidays: {date: IsoDate; name: string}[], year: number) => void;
 }
 
 /**
- * "Add one" or "Paste a list". Rendered with key={year}: a year switch starts a fresh adder and drops any paste in
- * flight.
+ * "Add one" or "Paste a list". Rendered with key={year}: a year switch starts a fresh adder; a paste still in flight
+ * then reports its holidays for the old year, which the parent drops.
  */
 export function HolidayAdder({year, mode, onModeChange, onAdd}: AdderProps) {
   const [date, setDate] = useState<StrictIsoDate | undefined>(undefined);
@@ -218,7 +218,7 @@ export function HolidayAdder({year, mode, onModeChange, onAdd}: AdderProps) {
     };
     setAddError(errors);
     if (errors.date || errors.name || !date) return;
-    onAdd([{date, name: trimmed}]);
+    onAdd([{date, name: trimmed}], year);
     setDate(undefined);
     setName('');
   };
@@ -228,8 +228,12 @@ export function HolidayAdder({year, mode, onModeChange, onAdd}: AdderProps) {
     setPasteFailure(null);
     try {
       const result = await parseHolidays(year, pasteText);
-      if (!alive.current) return; // the year changed while the paste was in flight
-      onAdd(result.holidays.map((h) => ({date: h.date, name: h.name})));
+      // Applied even if the adder closed meanwhile; the parent drops it if the year changed.
+      onAdd(
+        result.holidays.map((h) => ({date: h.date, name: h.name})),
+        year,
+      );
+      if (!alive.current) return;
       setPasteResult({added: result.holidays.length, errors: result.errors});
       if (result.errors.length === 0) setPasteText('');
     } catch (e) {

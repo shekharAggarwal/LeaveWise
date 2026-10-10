@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import * as stylex from '@stylexjs/stylex';
+import {canvasVars} from '../../theme/canvas.stylex';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
 import {Card} from '@astryxdesign/core/Card';
@@ -23,7 +24,7 @@ import {leavewiseTheme} from '../../theme/leavewise';
 const styles = stylex.create({
   // The canvas's dark summary card: the nested dark Theme supplies its colours (theme dark values = canvas card).
   dark: {
-    borderRadius: '20px',
+    borderRadius: canvasVars.radiusCard,
     backgroundColor: colorVars['--color-background-surface'],
   },
   stale: {
@@ -42,7 +43,7 @@ const styles = stylex.create({
     gap: spacingVars['--spacing-2'],
   },
   figure: {
-    borderRadius: '14px',
+    borderRadius: canvasVars.radiusTile,
     backgroundColor: colorVars['--color-background-muted'],
     padding: spacingVars['--spacing-4'],
   },
@@ -51,7 +52,7 @@ const styles = stylex.create({
     padding: spacingVars['--spacing-3'],
   },
   tintPanel: {
-    borderRadius: '16px',
+    borderRadius: canvasVars.radiusPanel,
     backgroundColor: colorVars['--color-accent-muted'],
     padding: spacingVars['--spacing-5'],
   },
@@ -161,10 +162,13 @@ export function Summary({
   const sub = noLeave
     ? noLeave.message
     : `across ${plural(summary.breakCount, 'break', 'breaks')}. ${
-        summary.leavesUnused > 0
-          ? `${plural(summary.leavesUnused, 'leave', 'leaves')} unused.`
-          : 'Every leave is used.'
-      }`;
+        // The LEAVES_LEFT_OVER note below already says how many are left over.
+        leftOver
+          ? ''
+          : summary.leavesUnused > 0
+            ? `${plural(summary.leavesUnused, 'leave', 'leaves')} unused.`
+            : 'Every leave is used.'
+      }`.trimEnd();
 
   const figures: {label: string; value: string; of?: string}[] = isPhone
     ? [

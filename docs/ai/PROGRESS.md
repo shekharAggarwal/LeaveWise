@@ -228,7 +228,15 @@ tests, doc drift fixed; `planSeq` left as is (existing safeguard).
 - [x] Holidays editor inline under "Edit list" (desktop; the canvas draws no desktop dialog) and a bottom sheet (phone); no-bundled-list state
 - [x] Phone flow: inputs view with sticky plan bar, results view, month calendar, day sheet
 - [x] States from the canvas (0 leaves, no break, errors, planning, inputs changed)
-- [ ] Gate, ui-reviewer and code-reviewer, side-by-side comparison with the canvas, commit and push
+- [x] Gate, ui-reviewer and code-reviewer, side-by-side comparison with the canvas, commit and push
+
+Canvas-match results (2026-10-10): compared in Chrome at 1440 and 390 px with the canvas's six holidays (same plan:
+12 leaves → 38 days off across 12 breaks). Kept over the canvas: calendar days keep their L/H/W letter, PRD error
+text, 24 px targets and contrast, and the phone break rows keep days off per leave (PRD Must; AI failure 20).
+ui-reviewer: 0 blockers; two-letter weekday labels on the phone, canvas sizes moved to `theme/canvas.stylex.ts`.
+code-reviewer: phone ratio, month-view keyboard focus, holidays lost while loading or after the sheet closed, label
+in name, day-sheet heading split, sheet reopening after a resize, doubled unused count; all fixed with tests.
+Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px in four states each.
 
 ## Laptop phase (ends at STOP 4)
 - [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO

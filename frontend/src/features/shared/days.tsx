@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
+import {canvasVars} from '../../theme/canvas.stylex';
 import {
   borderVars,
   colorVars,
@@ -20,9 +21,21 @@ const styles = stylex.create({
     fontWeight: fontWeightVars['--font-weight-bold'],
     boxSizing: 'border-box',
   },
-  md: {width: '30px', height: '30px', fontSize: textSizeVars['--font-size-sm']},
-  sm: {width: '24px', height: '24px', fontSize: textSizeVars['--font-size-xs']},
-  lg: {width: '40px', height: '40px', fontSize: textSizeVars['--font-size-base']},
+  md: {
+    width: canvasVars.squareMd,
+    height: canvasVars.squareMd,
+    fontSize: textSizeVars['--font-size-sm'],
+  },
+  sm: {
+    width: canvasVars.squareSm,
+    height: canvasVars.squareSm,
+    fontSize: textSizeVars['--font-size-xs'],
+  },
+  lg: {
+    width: canvasVars.squareLg,
+    height: canvasVars.squareLg,
+    fontSize: textSizeVars['--font-size-base'],
+  },
   outline: {
     borderWidth: spacingVars['--spacing-0-5'],
     borderStyle: 'solid',

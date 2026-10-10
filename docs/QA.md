@@ -102,6 +102,9 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | --- | --- | --- |
 | Leave-day stepper: −/+ by one, 0 to 60, starts from 0 on text that isn't a whole number, clears the error; the field stays a text box named "Leave days" | `Redesign.test#leave-day stepper` (3) | passing |
 | Phone screens (canvas): inputs with holidays row and plan bar, results with Edit inputs, figures, breaks, the one-month calendar with chips | `PhoneFlow.test` (4, matchMedia stubbed to a phone, axe on both screens) | passing |
+| Phone: break rows keep days off per leave (PRD Must), holidays sheet, failed plan returns to inputs, arrow keys across months, day sheet, a paste finishing after the sheet closes | `PhoneFlow.test` (6 more) | passing |
+| Tapped-day text for every kind (break, holiday with " · " in its name, free long weekend, past day) | `describeDay.test` (4) | passing |
+| A year switch closes the holiday adder; no adder while the list loads | `Redesign.test#holiday adder and the list loading` | passing |
 | Results panel says what it will hold before the first plan | `Redesign.test#shows what the panel will hold…` (with axe) | passing |
 | Stepper rule (whitespace, leading zeros, decimals, 20 digits, 0 and 60) | `validation.test#stepLeaveDays` (13) | passing |
 | Days off per leave rounds half up like the server | `figures.test#daysOffPerLeave` (5, incl. 43 / 20 = 2.2) | passing |

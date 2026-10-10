@@ -24,6 +24,7 @@ import {
   radiusVars,
   spacingVars,
 } from '@astryxdesign/core/theme/tokens.stylex';
+import {canvasVars} from '../../theme/canvas.stylex';
 import {ApiError, getHolidays, getOptions, messageOf, planLeaves} from '../../api/client';
 import type {
   BreakStyleId,
@@ -92,7 +93,7 @@ const styles = stylex.create({
     marginInline: spacingVars['--spacing-4'],
   },
   leaveInput: {
-    width: '88px',
+    width: canvasVars.leaveInput,
   },
   leaveInputPhone: {
     flex: '1 1 auto',
@@ -112,7 +113,7 @@ const styles = stylex.create({
   },
   bar: {
     width: spacingVars['--spacing-1-5'],
-    height: '14px',
+    height: canvasVars.barHeight,
     borderRadius: radiusVars['--radius-inner'],
     backgroundColor: colorVars['--color-accent'],
   },
@@ -145,7 +146,7 @@ const styles = stylex.create({
     marginBlockStart: spacingVars['--spacing-5'],
   },
   emptyPanel: {
-    borderRadius: '20px',
+    borderRadius: canvasVars.radiusCard,
     borderStyle: 'dashed',
     borderWidth: borderVars['--border-width'],
     borderColor: colorVars['--color-border-emphasized'],
@@ -222,7 +223,15 @@ export function PlannerPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   // Phone only: which screen of the page is showing.
   const [phoneView, setPhoneView] = useState<'inputs' | 'results'>('inputs');
+  // A sheet left open on a phone must not reopen when a narrow window comes back (adjusted during render, as React
+  // recommends for state that follows a changed input).
+  const [wasPhone, setWasPhone] = useState(isPhone);
+  if (wasPhone !== isPhone) {
+    setWasPhone(isPhone);
+    if (!isPhone) setSheetOpen(false);
+  }
   const planning = useRef(false); // guards a second Enter before React re-renders
+  const yearRef = useRef<number | null>(null); // the year the holiday rows belong to, for late paste results
   const planSeq = useRef(0); // drops responses that arrive out of order
 
   const applyOptions = useCallback((value: Options) => {
@@ -256,6 +265,10 @@ export function PlannerPage() {
     getOptions().then(applyOptions, failOptions);
   };
 
+  useEffect(() => {
+    yearRef.current = year;
+  }, [year]);
+
   // Each year starts from its bundled list, all ticked; added holidays belong to one year.
   useEffect(() => {
     if (year === null) return;
@@ -278,6 +291,7 @@ export function PlannerPage() {
 
   const changeYear = (next: number) => {
     setYear(next);
+    setAddMode(null);
     setHolidays({state: 'loading'});
     setRows([]);
     setTicked(new Set());
@@ -289,7 +303,9 @@ export function PlannerPage() {
     setHolidayReload((n) => n + 1);
   };
 
-  const addHolidays = (added: {date: IsoDate; name: string}[]) => {
+  /** Holidays from the adder for `forYear`; dropped if the year changed meanwhile (a paste still in flight). */
+  const addHolidays = (added: {date: IsoDate; name: string}[], forYear: number) => {
+    if (forYear !== yearRef.current) return;
     setRows((prev) => added.reduce((acc, h) => addHoliday(acc, h.date, h.name), prev));
     setTicked((prev) => new Set([...prev, ...added.map((h) => h.date)]));
   };
@@ -481,7 +497,9 @@ export function PlannerPage() {
         }}
       >
         {WEEKDAYS.map((d) => (
-          <ToggleButton key={d.id} value={d.id} label={d.label} />
+          <ToggleButton key={d.id} value={d.id} label={d.label}>
+            {isPhone ? d.short : d.label}
+          </ToggleButton>
         ))}
       </ToggleButtonGroup>
       {errors.weeklyOffs && <Banner status="error" title={errors.weeklyOffs} />}
@@ -539,7 +557,7 @@ export function PlannerPage() {
       />
     );
   const adder =
-    year === null || addMode === null ? null : (
+    year === null || addMode === null || holidays.state !== 'ready' ? null : (
       <HolidayAdder
         key={year}
         year={year}
@@ -562,7 +580,7 @@ export function PlannerPage() {
   const phoneHolidays = (
     <>
       <Button
-        label={`Holidays: ${rows.length > 0 ? countOn(rows, ticked) : 'none yet'}. Review or add`}
+        label={`Holidays ${rows.length > 0 ? countOn(rows, ticked) : 'None yet'} · tap to review or add`}
         variant="secondary"
         width="100%"
         onClick={() => {
@@ -596,7 +614,7 @@ export function PlannerPage() {
           <HolidaySource load={holidays} rows={rows} ticked={ticked} />
           {holidayList}
           {noList && year !== null && <NoListPanel year={year} onStart={setAddMode} />}
-          {year !== null && (
+          {year !== null && holidays.state === 'ready' && (
             <HolidayAdder
               key={year}
               year={year}

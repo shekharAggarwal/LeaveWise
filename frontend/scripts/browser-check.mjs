@@ -16,10 +16,10 @@ const SIZES = [
   [360, 800],
   [1280, 900],
 ];
-// Light only: the owner dropped dark mode on 2026-10-10 (docs/ai/REVIEW_LOG.md). Each width is checked in two
-// states: the results, and the holiday paste panel (on a phone: the results screen, then the inputs with the
-// holidays sheet open).
-const STAGES = ['results', 'holidays'];
+// Light only: the owner dropped dark mode on 2026-10-10 (docs/ai/REVIEW_LOG.md). Each width is checked in four
+// states: the results; the holiday adder's "Add one" and "Paste a list" panels (on a phone, inside the holidays
+// sheet); and the calendar with a leave day tapped (on a phone, the Calendar tab with the day sheet open).
+const STAGES = ['results', 'add-one', 'paste', 'calendar'];
 const PHONE_WIDTH = 799;
 const MIN_TARGET = 24;
 
@@ -48,15 +48,28 @@ async function exercise(page, stage, width) {
   ]);
   await page.getByRole('region', {name: /^Your \d{4} plan$/}).waitFor();
   const planMs = Date.now() - started;
-  if (stage === 'holidays') {
-    if (width <= PHONE_WIDTH) {
+  const phone = width <= PHONE_WIDTH;
+  if (stage === 'add-one' || stage === 'paste') {
+    if (phone) {
       await page.getByRole('button', {name: 'Edit inputs'}).click();
-      await page.getByRole('button', {name: /^Holidays: /}).click();
+      await page.getByRole('button', {name: /^Holidays /}).click();
     } else {
       await page.getByRole('button', {name: 'Edit list'}).click();
     }
-    await page.getByRole('radio', {name: 'Paste a list'}).click();
-    await page.getByRole('textbox', {name: /One holiday per line/}).waitFor();
+    if (stage === 'paste') {
+      await page.getByRole('radio', {name: 'Paste a list'}).click();
+      await page.getByRole('textbox', {name: /One holiday per line/}).waitFor();
+    } else {
+      await page.getByRole('textbox', {name: 'Holiday name'}).waitFor();
+    }
+  }
+  if (stage === 'calendar') {
+    if (phone) await page.getByRole('radio', {name: 'Calendar'}).click();
+    await page
+      .getByRole('button', {name: /: leave day/})
+      .first()
+      .click();
+    if (phone) await page.getByRole('button', {name: 'Close'}).waitFor();
   }
   return {planMs, status: response.status()};
 }
@@ -154,6 +167,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `Browser check passed at ${SIZES.map(([w]) => `${w}px`).join(' and ')}, light mode, results and holiday panel: no overflow, ` +
+  `Browser check passed at ${SIZES.map(([w]) => `${w}px`).join(' and ')}, light mode, results, holiday panels and calendar: no overflow, ` +
     'no CSP violations or console errors, touch targets of 24px or more, no axe WCAG 2.2 AA violations.',
 );
