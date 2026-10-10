@@ -54,7 +54,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - PIT on `dev.leavewise.planner`: 180 of 184 mutants killed (98%), line coverage 98%. Survivors: BreakOptimizer
   line 71 (`>` to `>=` inside `days != current.days ? days > current.days : ...`, equivalent) and line 65
   (`cost + rest.leaves` to `-`, equivalent: with equal days the candidate never has more leaves; checked
-  exhaustively up to 14 days and on 90k random sequences by edge-case-hunter); PlanningCalendar lines 76 and 85
+  exhaustively up to 14 days and on 90k random sequences by edge-case-hunter); PlanningCalendar lines 76 and 85 (75 and 84 in Phase 4, same mutants)
   (the 366-day safety bound on edge runs, unreachable through the API and not PRD behaviour).
 - Speed: a full year with 60 leaves plans in 3 to 8 ms (best of 20 after warm-up), against the PRD's 1 second.
 - Open interpretation for the owner (edge-case-hunter): planning next year on 30 or 31 Dec counts today and earlier
@@ -188,11 +188,11 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] GitHub Actions CI (quality-gate plus Docker build)
 - [x] Docker image built in the cloud VM, output shown
 - [ ] Host config (default Render, current pricing checked) and docs/DEPLOYMENT.md (config and doc done; pricing not checkable: render.com is blocked from the VM, so third-party 2026 figures are marked unverified and the owner confirms them, HUMAN_TODO step 3)
-- [ ] README.md (problem, solution, demo link placeholder, quick start, architecture, limitations, dependencies, "For judges" table)
+- [x] README.md (problem, solution, demo link placeholder, quick start, architecture, limitations, dependencies, "For judges" table)
 - [ ] LAPTOP: README screenshots
-- [ ] docs/ai/AI_WORKFLOW.md finished (stages, subagent table, Claude-Session trailer note)
-- [ ] docs/DEMO_SCRIPT.md
-- [ ] docs/SUBMISSION.md and the secret-scan plus ZIP script
+- [x] docs/ai/AI_WORKFLOW.md finished (stages, subagent table, Claude-Session trailer note)
+- [x] docs/DEMO_SCRIPT.md
+- [x] docs/SUBMISSION.md and the secret-scan plus ZIP script
 - [ ] quality-gate passes and Docker image builds, output shown; branch pushed
 - [ ] STOP 3: cloud work summary, LAPTOP steps and human steps in order
 

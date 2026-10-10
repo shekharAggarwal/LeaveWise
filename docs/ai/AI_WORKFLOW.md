@@ -61,5 +61,25 @@ links each change to the Claude Code session that made it.
 
 ## Lifecycle
 
-Filled in at STOP 3: for each stage (define, design, build, test, review, document), what the AI did, what the
-owner did, and the files that prove it.
+What the AI did and what the owner did at each stage, with the files that show it. Counts are from the files named.
+
+| Stage | AI (Claude Code and subagents) | Owner | Evidence |
+| --- | --- | --- | --- |
+| Define | Copied the owner's PRD page word for word (revision 13) and transcribed its build-plan diagram. Listed every interpretation it had to make and recommended answers to the PRD's open questions for STOP 1. | Chose the idea and scope; worked out the PRD with Claude in a claude.ai chat; wrote the build brief with its phases, STOP points and rules. | `docs/PRD.md`, `docs/ai/kickoff-prompt.md`, "Decisions and interpretations" in `docs/ai/PROGRESS.md` |
+| Design | Before any code: architecture, API contract, 8 ADRs, and the PRD-rule-to-test map. code-reviewer checked the docs against the PRD (10 findings, all fixed). | Reviewed at STOP 1 and approved ("push the changes on git, you are allowed to do everything"). | `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/adr/`, `docs/QA.md`, `docs/ai/REVIEW_LOG.md` |
+| Build | test-designer wrote tests from the PRD and API contract before the code (135 planner tests and the brute-force oracle; 135 holiday, `.ics` and API tests). The main session wrote the code to pass them, and the UI from Astryx templates (`astryx build`, `template`, `component`). Hooks formatted every edit and blocked edits to the PRD. | Gave the go-ahead at STOP 2 ("looks good to me continue"). | `backend/`, `frontend/`, `.claude/hooks/`, git history |
+| Test | Brute-force oracle (1,500 random calendars, all equal), PIT (183 of 187 mutants killed), edge-case-hunter twice (Phase 2 planner, Phase 4 whole app: 6 failing tests, all fixed), a real-browser check in the gate, and CI on GitHub (gate, dependency scan, Docker build). | Still to do: the real phone check and the PRD's 3-colleague check (`docs/HUMAN_TODO.md`). | `docs/QA.md`, `backend/src/test/`, `frontend/src/**/*.test.tsx`, `frontend/scripts/browser-check.mjs`, `.github/workflows/ci.yml` |
+| Review | code-reviewer 3 times (docs, API, UI), ui-reviewer twice, security-reviewer once; every finding fixed or answered in the table above. Each mistake a check caught went into the failure log; 13 of the 18 added a rule to `CLAUDE.md` or `frontend/CLAUDE.md`. | Reviews at each STOP; the words are kept as written. | Subagent table above, `docs/ai/AI_FAILURE_LOG.md` (18 entries), `CLAUDE.md` working rules |
+| Document and deliver | README, deployment guide, Dockerfile (built and smoke-tested in the cloud VM), Render config, and this file. Owner-only steps written out with exact instructions. | Still to do: merge, deploy, live link, demo and submission (`docs/HUMAN_TODO.md`). | `README.md`, `docs/DEPLOYMENT.md`, `Dockerfile`, `render.yaml`, `docs/HUMAN_TODO.md` |
+
+## Traceability
+
+Every commit made in the cloud ends with a `Claude-Session:` trailer that links the change to the Claude Code
+session that made it, next to the `Co-Authored-By` line. To see them:
+
+```sh
+git log --format='%h %s%n  %(trailers:key=Claude-Session,valueonly)'
+```
+
+On 2026-10-10 all 31 commits on the branch carried it. Alongside the trailers, `docs/ai/PROGRESS.md` records each
+step as it was ticked, and `docs/ai/REVIEW_LOG.md` holds only the owner's own words.
