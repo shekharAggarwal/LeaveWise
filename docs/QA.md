@@ -50,7 +50,7 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Same inputs always give the same plan | `PlannerProperties#holidayOrderDoesNotMatter`, `#repeatedRunsAreIdentical`, `PlannerRulesTest#sameInputsAlwaysGiveTheSamePlan` | passing |
 | Year edges: leaves stay in the year; breaks count edge weekly offs and known holidays | `YearEdgeTest` (9 tests incl. `#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#noLeaveOutsideYear`, `#unknownAdjacentYearUsesWeeklyOffsOnly`, `#edgeCasesAgreeWithTheBruteForceOracle`), `PlanningCalendarTest#leadingEdge…`, `#trailingEdge…` | passing |
 | Current year: only days after today are planned | `PlanningWindowTest#currentYearStartsTomorrow`, `#todayIsNotCountedEvenIfItIsADayOff`, `#leavesNeverFallOnOrBeforeToday`, `#todayIsReadInTheClocksZone` | passing |
-| Default year: next year from October | `ApiOptionsTest#defaultYearFromOctober` | planned (API) |
+| Default year: next year from October | `OptionsApiTest#defaultYearFromOctober`, `#firstOfOctoberAlreadyDefaultsToNextYear` | passing |
 | Free long weekends: 3+ days off needing no leave, shown, not counted | `FreeLongWeekendTest` (13 tests incl. `#listedButNotCounted`, `#notListedWhenPartOfABreak`, `#listedForEveryBreakStyle`), `PlannerProperties#freeLongWeekendsFollowTheRules` | passing |
 | A break can't start right after a day off (maximal runs only) | `CandidateBreaksTest#noStartAfterADayOff`, `#everyBreakIsMaximalOnRandomLookingSequences`, `PlannerProperties#breaksAreMaximalRunsOfDaysOff` | passing |
 | PRD example: Thursday holiday + Friday leave = 4-day break Thu to Sun | `PlannerRulesTest#prdExampleThursdayHolidayFridayLeave`, `BreakOptimizerTest#prdExampleHolidayThursdayLeaveFridayIsFourDays` | passing |
@@ -60,44 +60,45 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 
 | Edge case | Tests | Status |
 | --- | --- | --- |
-| A holiday on a weekly off | `PlannerRulesTest#holidayOnWeeklyOffCountsOnce`, `PlanningCalendarTest#holidayOnWeeklyOffIsOneDayOff` | passing |
-| Two holidays on the same date | `HolidayMergeTest` (4 tests incl. `#sameDateKeptOnceWithBothNames`); API: `PlanApiTest#duplicateHolidayDates` | planner passing; API planned |
-| A break that crosses into the next or previous year | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#breakExtendsFromPreviousYearThroughWeeklyOffs` | passing |
-| A leap year (2028) | `LeapYearTest` (6 tests incl. `#plans366Days`, `#feb29IsAWorkingDayCandidate`, `#feb29MatchesTheBruteForceOracle`) | passing |
-| 0 leave days | `PlannerRulesTest#zeroLeavesGivesNoBreaksAndFreeWeekends`; API: `PlanApiTest#zeroLeavesNote` | planner passing; API planned |
-| More leave days than working days | `PlannerRulesTest#moreLeavesThanWorkingDaysUsesEveryWorkingDay`, `#leftOverNoteCountsTheLeavesNotUsed`, `PlannerProperties#spareLeavesMeanEveryWorkingDayInTheWindowIsALeave`; API: `PlanApiTest#leftOverNote` | planner passing; API planned |
+| A holiday on a weekly off | `PlannerRulesTest#holidayOnWeeklyOffCountsOnce`, `PlanningCalendarTest#holidayOnWeeklyOffIsOneDayOff`, `PlanApiTest#aHolidayOnAWeeklyOffIsKindHoliday` | passing |
+| Two holidays on the same date | `HolidayMergeTest` (4), `ReviewFindingsHolidaysTest#holidayDayMerge…`, `HolidaysApiTest#twoHolidaysOnTheSameDateAreReturnedOnceWithBothNames`, `PlanApiTest#duplicateHolidayDates`; UI rows merge by date (`holidayRows.ts`) | passing |
+| A break that crosses into the next or previous year | `YearEdgeTest#breakExtendsIntoNextYear`, `#breakExtendsFromPreviousYear`, `#breakExtendsFromPreviousYearThroughWeeklyOffs`, `IcsWriterTest#dtendAfterABreakCrossingNewYearRollsIntoTheNextYear`, `dates.test#formats a range` | passing |
+| A leap year (2028) | `LeapYearTest` (6), `PlanApiTest#leapYearHas366Days`, `HolidayPasteParserTest#the29thOfFebruaryIsRealInALeapYear…` | passing |
+| 0 leave days | `PlannerRulesTest#zeroLeavesGivesNoBreaksAndFreeWeekends`, `PlanApiTest#zeroLeavesNote`, `App.test#0 leave days: free long weekends only` | passing |
+| More leave days than working days | `PlannerRulesTest#moreLeavesThanWorkingDaysUsesEveryWorkingDay`, `PlannerProperties#spareLeavesMeanEveryWorkingDayInTheWindowIsALeave`, `PlanApiTest#leftOverNote` | passing |
 | Only Sunday as a weekly off | `PlannerRulesTest#sundayOnlyWeek`, `PlanningCalendarTest#onlySundayAsWeeklyOff`, oracle (random weekly offs) | passing |
-| No weekly off at all (PRD allows any days) | `PlannerRulesTest#noWeeklyOffs`, `PlanningCalendarTest#noWeeklyOffsAndNoHolidaysMeansNoEdges`; API: `PlanApiTest#emptyWeeklyOffsAccepted` | planner passing; API planned |
-| Every holiday unticked | `PlannerRulesTest#noHolidays`, `PlanningCalendarTest#holidaysListIsEmptyWhenEveryHolidayIsUnticked`; UI: `PlannerForm.test#untickAllHolidays` | planner passing; UI planned |
-| Current year, planning from today | `PlanningWindowTest` (11 tests incl. `#currentYearStartsTomorrow`, `#planOnThirtyFirstDecemberHasNoDaysLeft`, `#windowShorterThanMinimumBreakGivesNoBreakPossible`) | passing |
-| A pasted list with bad lines | `HolidayPasteParserTest#reportsLineAndReasonAndLoadsTheRest`, `#over50Lines`, `HolidayPaste.test` | planned (Phase 3) |
+| No weekly off at all (PRD allows any days) | `PlannerRulesTest#noWeeklyOffs`, `PlanApiTest#emptyWeeklyOffsAccepted` | passing |
+| Every holiday unticked | `PlannerRulesTest#noHolidays`, `PlanningCalendarTest#holidaysListIsEmptyWhenEveryHolidayIsUnticked`, `App.test#plans with the ticked holidays` (unticked one not sent) | passing |
+| Current year, planning from today | `PlanningWindowTest` (11), `PlanApiTest#currentYearIsPlannedFromTomorrow`, `#noDaysLeftNote` | passing |
+| A pasted list with bad lines | `HolidayPasteParserTest` (22), `HolidayParseApiTest` (8), `App.test#pasted lines load and bad lines show their line number and reason` | passing |
 
 ## Coverage map: validation and errors (PRD table)
 
 | Situation | Expected (PRD) | Tests | Status |
 | --- | --- | --- | --- |
-| Leave days not whole, below 0 or above 60 | "Enter a whole number from 0 to 60." | `PlanApiTest#leaveDaysValidation` (12.5, "12", -1, 61), `LeaveDaysField.test` | planned |
-| More leave days than working days left | Plan uses every working day, note on leftovers | `PlanApiTest#leftOverNote` | planned |
-| No working day left in the week | "Keep at least one working day in the week." | `PlanApiTest#allSevenWeeklyOffs`, `WeeklyOffsField.test` | planned |
-| Pasted line not a valid date in the year | Line number and reason; other lines load | `HolidayPasteParserTest`, `HolidayParseApiTest` | planned |
-| Same holiday date added twice | Kept once, both names shown | `HolidayMergeTest`, `BreakList.test#showsBothNames` | planned |
-| 0 leave days | Free long weekends only, note that no leave is used | `PlanApiTest#zeroLeavesNote`, `Results.test#zeroLeaves` | planned |
-| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `#onlyOneNote…` (3 tests), `PlannerProperties#notesFollowTheRules`; API: `PlanApiTest#noBreakPossibleNote` | planner passing; API planned |
+| Leave days not whole, below 0 or above 60 | "Enter a whole number from 0 to 60." | `PlanApiTest#leaveDaysValidation` (12.5, "12", -1, 61), `#leaveDaysBoundariesAreAccepted`, `App.test#leave days outside 0 to 60 or not whole` (61, -1, 12.5, abc; no request sent) | passing |
+| More leave days than working days left | Plan uses every working day, note on leftovers | `PlanApiTest#leftOverNote`, planner rows above | passing |
+| No working day left in the week | "Keep at least one working day in the week." | `PlanApiTest#allSevenWeeklyOffs`, `App.test#all seven weekly offs` | passing |
+| Pasted line not a valid date in the year | Line number and reason; other lines load | `HolidayPasteParserTest`, `HolidayParseApiTest`, `App.test#pasted lines…` | passing |
+| Same holiday date added twice | Kept once, both names shown | `HolidayMergeTest`, `HolidaysApiTest#twoHolidays…`, `PlanApiTest#duplicateHolidayDates` | passing |
+| 0 leave days | Free long weekends only, note that no leave is used | `PlanApiTest#zeroLeavesNote`, `App.test#0 leave days…` | passing |
+| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `#onlyOneNote…` (3), `PlanApiTest#noBreakPossibleNoteSuggests…`, `#noBreakPossibleNoteHasNoSuggestionForLongWeekends` | passing |
+| Server-side errors are problem+json and say what to do | docs/API.md errors table | `ErrorFormatTest` (4), `ReviewFindingsApiTest` (12), `App.test#a server error shows its message and keeps the inputs` | passing |
 
 ## Coverage map: results (Must items)
 
 | Part | Tests | Status |
 | --- | --- | --- |
-| Summary: leaves used, total days off, breaks, unused leaves | `PlanApiTest#summary`, `Summary.test` | planned |
-| Break list: dates, days off, leave dates, holidays, days off per leave | `PlanApiTest#breakFields`, `BreakList.test` | planned |
-| Year calendar: 12 months, colour **and** label, tap a day to see what it is | `YearCalendar.test#labelsEveryKind`, `#tapShowsDayDetails`, axe | planned |
-| Calendar file: one all-day event per break, notes list leave dates | `IcsWriterTest`, `IcsApiTest`, `DownloadButton.test` | planned |
+| Summary: leaves used, total days off, breaks, unused leaves | `PlanApiTest#summary`, `App.test#plans with the ticked holidays…` ("2 leaves → 7 days off", "across 2 breaks") | passing |
+| Break list: dates, days off, leave dates, holidays, days off per leave | `PlanApiTest#breakFields`, `#daysOffPerLeaveIsRoundedToOneDecimal`, `LeaveBreakTest`, `App.test` (first break's five facts) | passing |
+| Year calendar: 12 months, colour **and** label, tap a day to see what it is | `PlanApiTest#daysHasOneEntryPerDateOfTheYear`, `#daysCarryKindPlannedHolidayNamesAndBreakIndex`, `App.test` (month headings, day button's spoken label, tapped-day line in a live region, legend), axe | passing |
+| Calendar file: one all-day event per break, notes list leave dates | `IcsWriterTest` (21), `IcsInjectionTest` (4), `IcsApiTest` (6), `App.test#downloads the .ics for the same inputs` | passing |
 
 ## Coverage map: results (Nice to have, deferred until every Must is polished)
 
 | Part | Tests | Status |
 | --- | --- | --- |
-| Free long weekends (beyond the 0-leave case) | `FreeLongWeekendTest` (planner), `FreeLongWeekends.test` (UI) | deferred |
+| Free long weekends (beyond the 0-leave case) | `FreeLongWeekendTest` (planner); UI shows them only for 0 leaves | deferred |
 | Other good breaks: top 10 not in the plan, by days off per leave | `OtherBreaksTest#topTenByDaysOffPerLeave` | deferred |
 | Share link: inputs kept in the page link | `ShareLink.test#roundTripsInputs` | deferred |
 
@@ -105,21 +106,21 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 
 | PRD item | Tests or check | Status |
 | --- | --- | --- |
-| Full-year plan in under 1 second | `PlannerPerformanceTest#fullYearSixtyLeavesUnderOneSecond`, `#bigTripsWithMaximumLeavesAlsoUnderOneSecond`; API: `PlanApiTest` timing | planner passing; API planned |
-| Works from 360 px wide | Playwright screenshots at 360 and 1280 px (laptop or cloud Chromium) | planned |
-| Contrast, keyboard, colour never the only signal | axe in Vitest, keyboard flow test, `YearCalendar.test#labelsEveryKind` | planned |
-| No login, database, tracking cookies; inputs not logged | `PrivacyTest#noSetCookie`, `#requestBodyNotLogged` (captured log output) | planned |
-| Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `SecurityHeadersTest` | planned |
-| No secrets in the repo | gitleaks-style scan in `scripts/quality-gate.sh` and CI | planned |
-| Holiday file per year with source noted | `BundledHolidayFilesTest#everyFileHasOfficialSource`, `#noTestDataInMain` | planned |
-| The app reminds users to check their company's official list | `HolidaysApiTest#reminderPresent`, `HolidayList.test#showsSourceAndReminder` | planned |
-| One Spring Boot app serves the page and API | Docker build in CI, `SpaForwardingTest` | planned |
+| Full-year plan in under 1 second | `PlannerPerformanceTest` (2), `PlanApiTest#fullYearPlanRespondsInUnderOneSecond`; measured 3 to 8 ms in the planner | passing |
+| Works from 360 px wide | Playwright Chromium screenshots at 360 and 1280 px, light and dark, with a horizontal-overflow check (cloud VM, Phase 3); real-device check is a LAPTOP/owner step | checked in cloud Chromium |
+| Contrast, keyboard, colour never the only signal | axe in `App.test` (form and results; contrast rule needs a real browser), calendar days carry a text code and a spoken label, roving arrow-key focus | passing (contrast: LAPTOP check) |
+| No login, database, tracking cookies; inputs not logged | `PrivacyTest#noResponseSetsACookie`, `#requestInputsNeverAppearInTheLog` (root DEBUG on) | passing |
+| Server-side validation, size limit, rate limit, headers | `PlanApiTest`, `RequestSizeLimitTest`, `RateLimitTest`, `RateLimitFilterTest`, `PathBypassTest` (real server), `SecurityHeadersTest` | passing |
+| No secrets in the repo | secretlint in `scripts/quality-gate.sh` | passing |
+| Holiday file per year with source noted | `BundledHolidayFilesTest`, `HolidayRepositoryTest` (13), `ReviewFindingsHolidaysTest#retrievedOnMustBeAnIsoDate` | passing (real files: LAPTOP) |
+| The app reminds users to check their company's official list | `HolidaysApiTest#reminderPresent`, `App.test#shows the holiday source and the reminder` | passing |
+| One Spring Boot app serves the page and API | `SpaForwardingTest` (2); Docker build in Phase 5 | partly (Docker pending) |
 
 ## Acceptance items (PRD, "How we will know it works")
 
 | Item | How | Status |
 | --- | --- | --- |
 | Oracle match on 1,000+ random small calendars | `PlannerOracleProperties#matchesBruteForce`, 1,500 tries, 1,500 checks, all matching | passing |
-| Automated tests cover every planning rule and edge case | The tables above, all `passing` | planned |
+| Automated tests cover every planning rule and edge case | The tables above | passing |
 | 3 colleagues each get a plan in under a minute without help | Owner's usability check, recorded in `docs/HUMAN_TODO.md` with real results only | owner |
 | The deployed URL works on a phone | Owner's check after deploy | owner |
