@@ -163,7 +163,8 @@ export function HolidayList({
 }
 
 /** Canvas state "No bundled holiday list": the year has no official list yet. */
-export function NoListPanel({year, onStart}: {year: number; onStart: (mode: AddMode) => void}) {
+/** `onStart` shows "Add one" and "Paste a list"; leave it out where the adder's own tabs are already shown. */
+export function NoListPanel({year, onStart}: {year: number; onStart?: (mode: AddMode) => void}) {
   return (
     <VStack gap={3} xstyle={styles.marigoldPanel}>
       <DaySquare code="H" size="lg" />
@@ -173,10 +174,12 @@ export function NoListPanel({year, onStart}: {year: number; onStart: (mode: AddM
           Add your company&apos;s holidays below, one by one or as a pasted list.
         </Text>
       </VStack>
-      <HStack gap={2} wrap="wrap">
-        <Button label="Add one" variant="outline" onClick={() => onStart('one')} />
-        <Button label="Paste a list" variant="outline" onClick={() => onStart('paste')} />
-      </HStack>
+      {onStart && (
+        <HStack gap={2} wrap="wrap">
+          <Button label="Add one" variant="outline" onClick={() => onStart('one')} />
+          <Button label="Paste a list" variant="outline" onClick={() => onStart('paste')} />
+        </HStack>
+      )}
     </VStack>
   );
 }

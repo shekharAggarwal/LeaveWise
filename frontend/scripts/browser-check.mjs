@@ -52,7 +52,8 @@ async function exercise(page, stage, width) {
   if (stage === 'add-one' || stage === 'paste') {
     if (phone) {
       await page.getByRole('button', {name: 'Edit inputs'}).click();
-      await page.getByRole('button', {name: /^Holidays /}).click();
+      // The holidays row is a ClickableCard: users tap its surface; its button is screen-reader only.
+      await page.getByText(/tap to review or add/).click();
     } else {
       await page.getByRole('button', {name: 'Edit list'}).click();
     }

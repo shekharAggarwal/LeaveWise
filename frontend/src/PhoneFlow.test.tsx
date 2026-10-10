@@ -201,3 +201,18 @@ describe('holidays added while the list is not ready (code review)', () => {
     expect(await screen.findByRole('button', {name: /^Holidays 4 of 4 on/})).toBeInTheDocument();
   });
 });
+
+describe('phone: holidays sheet for a year without a list (owner: mobile version is broken)', () => {
+  it('offers Add one and Paste a list once, as the tabs', async () => {
+    stubApi();
+    const {user} = await renderPhone();
+    await user.click(screen.getByRole('radio', {name: '2026'}));
+    await user.click(await screen.findByRole('button', {name: /^Holidays None yet/}));
+    expect(
+      await screen.findByText('No official list for 2026 is bundled yet.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', {name: 'Add one'})).toBeChecked();
+    expect(screen.queryByRole('button', {name: 'Add one'})).toBeNull();
+    expect(screen.queryByRole('button', {name: 'Paste a list'})).toBeNull();
+  });
+});

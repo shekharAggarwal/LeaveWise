@@ -29,3 +29,7 @@ nothing is matching we built in artifact so can you do only light theme work and
 
 Answers to two questions: "How should this FiftyFive 2026 list be added, given ADR 0007's government-only rule?" →
 Bundle as company list. "How should the 14 floater leaves be handled?" → Listed, unticked.
+
+## 2026-10-10 (phone layout)
+
+mobile version is broken

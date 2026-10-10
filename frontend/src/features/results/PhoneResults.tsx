@@ -137,8 +137,10 @@ export function PhoneResults({
   const [showAll, setShowAll] = useState(false);
   const region = useRef<HTMLElement | null>(null);
 
+  // A new plan opens at the top, with "Edit inputs" in view; focus moves to the results without scrolling past it.
   useEffect(() => {
-    region.current?.focus();
+    window.scrollTo(0, 0);
+    region.current?.focus({preventScroll: true});
   }, []);
 
   const breaks = showAll ? plan.breaks : plan.breaks.slice(0, FIRST_BREAKS);
@@ -249,6 +251,12 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
   const [focused, setFocused] = useState<IsoDate | null>(null);
   const buttons = useRef(new Map<IsoDate, HTMLButtonElement>());
   const pendingFocus = useRef<IsoDate | null>(null);
+  const chips = useRef(new Map<number, HTMLButtonElement>());
+
+  // Keep the shown month's chip in view (October would otherwise sit off-screen to the right).
+  useEffect(() => {
+    chips.current.get(month)?.scrollIntoView?.({inline: 'center', block: 'nearest'});
+  }, [month]);
   const tabStop =
     focused && monthOf(focused) === month + 1
       ? focused
@@ -306,6 +314,10 @@ function MonthCalendar({plan}: {plan: PlanResponse}) {
               key={m}
               type="button"
               aria-pressed={i === month}
+              ref={(el) => {
+                if (el) chips.current.set(i, el);
+                else chips.current.delete(i);
+              }}
               aria-label={`${MONTH_NAMES[i]}: ${counts[i] ?? 0} ${counts[i] === 1 ? 'break' : 'breaks'}`}
               onClick={() => setMonth(i)}
               {...stylex.props(styles.chip, i === month && styles.chipOn)}

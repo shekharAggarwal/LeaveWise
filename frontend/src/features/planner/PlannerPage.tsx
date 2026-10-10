@@ -8,6 +8,7 @@ import {Banner} from '@astryxdesign/core/Banner';
 import {BottomSheet} from '@astryxdesign/core/BottomSheet';
 import {Button} from '@astryxdesign/core/Button';
 import {Card} from '@astryxdesign/core/Card';
+import {ClickableCard} from '@astryxdesign/core/ClickableCard';
 import {EmptyState} from '@astryxdesign/core/EmptyState';
 import {Icon} from '@astryxdesign/core/Icon';
 import {HStack, VStack} from '@astryxdesign/core/Layout';
@@ -128,7 +129,10 @@ const styles = stylex.create({
     borderStyle: 'solid',
     borderColor: colorVars['--color-border-emphasized'],
     borderRadius: radiusVars['--radius-container'],
-    padding: spacingVars['--spacing-3'],
+  },
+  grow: {
+    flex: '1 1 auto',
+    minWidth: 0,
   },
   // On a phone the Plan bar stays at the bottom of the screen (canvas); index.css adds scroll padding so a focused
   // field is never hidden behind it (WCAG 2.4.11).
@@ -515,21 +519,27 @@ export function PlannerPage() {
   );
 
   const breakStyleField = (
-    <RadioList
-      label="Break style"
-      value={breakStyle}
-      onChange={(value) => setBreakStyle(value as BreakStyleId)}
-    >
-      {opts.breakStyles.map((s) => (
-        <RadioListItem
-          key={s.id}
-          value={s.id}
-          label={<Text weight="semibold">{s.label}</Text>}
-          description={BREAK_STYLE_HINTS[s.id]}
-          endContent={isPhone ? undefined : <Bars days={s.minDays} isOn={s.id === breakStyle} />}
-        />
-      ))}
-    </RadioList>
+    <VStack gap={2}>
+      <Text type="field" aria-hidden="true">
+        Break style
+      </Text>
+      <RadioList
+        label="Break style"
+        isLabelHidden
+        value={breakStyle}
+        onChange={(value) => setBreakStyle(value as BreakStyleId)}
+      >
+        {opts.breakStyles.map((s) => (
+          <RadioListItem
+            key={s.id}
+            value={s.id}
+            label={<Text weight="semibold">{s.label}</Text>}
+            description={BREAK_STYLE_HINTS[s.id]}
+            endContent={isPhone ? undefined : <Bars days={s.minDays} isOn={s.id === breakStyle} />}
+          />
+        ))}
+      </RadioList>
+    </VStack>
   );
 
   const noList = holidays.state === 'ready' && rows.length === 0;
@@ -579,7 +589,9 @@ export function PlannerPage() {
     <VStack gap={3}>
       {holidayHeader}
       {holidayList}
-      {noList && year !== null && <NoListPanel year={year} onStart={setAddMode} />}
+      {noList && year !== null && (
+        <NoListPanel year={year} onStart={addMode === null ? setAddMode : undefined} />
+      )}
       {adder}
       <HolidaySource load={holidays} rows={rows} ticked={ticked} />
     </VStack>
@@ -587,25 +599,27 @@ export function PlannerPage() {
 
   const phoneHolidays = (
     <>
-      <Button
+      {/* A card-sized row (canvas), not a Button: a Button keeps its own height and the row spilled out of it. */}
+      <ClickableCard
         label={`Holidays ${rows.length > 0 ? countOn(rows, ticked) : 'None yet'} · tap to review or add`}
-        variant="secondary"
-        width="100%"
+        padding={3}
+        xstyle={styles.holidaysRow}
         onClick={() => {
           setSheetOpen(true);
           if (addMode === null && noList) setAddMode('one');
         }}
       >
-        <HStack as="span" gap={3} vAlign="center" xstyle={styles.holidaysRow} width="100%">
+        <HStack gap={3} vAlign="center">
           <DaySquare code="H" size="lg" />
-          <VStack as="span" gap={0.5}>
+          <VStack gap={0.5} xstyle={styles.grow}>
             <Text weight="semibold">Holidays</Text>
             <Text type="supporting" color="secondary">
               {rows.length > 0 ? countOn(rows, ticked) : 'None yet'} · tap to review or add
             </Text>
           </VStack>
+          <Icon icon="chevronRight" color="secondary" />
         </HStack>
-      </Button>
+      </ClickableCard>
       <BottomSheet
         isOpen={sheetOpen}
         onOpenChange={setSheetOpen}
@@ -621,7 +635,7 @@ export function PlannerPage() {
           </HStack>
           <HolidaySource load={holidays} rows={rows} ticked={ticked} showCount />
           {holidayList}
-          {noList && year !== null && <NoListPanel year={year} onStart={setAddMode} />}
+          {noList && year !== null && <NoListPanel year={year} />}
           {year !== null && holidays.state === 'ready' && (
             <HolidayAdder
               key={year}
