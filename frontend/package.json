@@ -20,6 +20,8 @@
   "dependencies": {
     "@astryxdesign/core": "0.6.6",
     "@astryxdesign/theme-stone": "0.6.6",
+    "@fontsource/figtree": "5.3.0",
+    "@fontsource/montserrat": "5.3.0",
     "@stylexjs/stylex": "0.19.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
