@@ -203,11 +203,22 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 
 ## UI redesign (owner request, 2026-10-10)
 - [x] Screens planned and drawn on a Claude Design canvas; owner approved, chose an indigo custom theme
-- [ ] LeaveWise theme (Stone plus indigo accent), built CSS, CSP and contrast checked
-- [ ] Planner inputs restyled (header, input card, leave stepper, break-style cards, holiday editor)
-- [ ] Results restyled (summary card, stats, break list with day strips, calendar legend and day panel)
-- [ ] No-break note offers a shorter break style
-- [ ] Tests, QA map, API.md copy, quality gate, ui-reviewer and code-reviewer, commit
+- [x] LeaveWise theme (Stone plus indigo accent), built CSS, CSP and contrast checked
+- [x] Planner inputs restyled (header, input card, leave stepper; break-style options and holiday editor kept as Astryx RadioList and the existing editor)
+- [x] Results restyled (dark summary card, four figures, numbered break rows with day strips, calendar in a card)
+- [x] No-break note offers a shorter break style
+- [x] Tests, QA map, API.md copy, quality gate, ui-reviewer and code-reviewer, commit
+
+Redesign results (2026-10-10, on the owner's laptop): quality gate 12 of 12 PASS; 98 frontend tests; browser check
+passing at 360 and 1280 px, light and dark (plan to results 80 to 91 ms). Differences from the canvas: one page (the
+holiday editor stays inline, all 12 months stack on a phone, no Breaks/Calendar tabs), the canvas's sticky phone
+Plan bar was dropped (it could cover a focused field, WCAG 2.4.11), and accessible names kept from before
+("Your plan", "Breaks", "Download calendar file (.ics)"). The gate's browser-check jar now gets a burst of 200: the
+faster page made 8 loads exceed the production burst of 20 (`429` on `/api/holidays`). ui-reviewer: 0 blockers; the
+sticky bar, comments and contrast items fixed, raw px for layout widths and the decorative day squares kept with a
+comment (no Astryx token or component for them). code-reviewer: rounding mismatch fixed (AI failure 19), Try
+buttons wait for an in-flight plan, an invalid input no longer switches the break style, stepper and rounding unit
+tests, doc drift fixed; `planSeq` left as is (existing safeguard).
 
 ## Laptop phase (ends at STOP 4)
 - [ ] LAPTOP: fetch official holiday lists, build holiday JSON files with source URLs, list unverified dates in HUMAN_TODO

@@ -16,3 +16,10 @@ export function hasControlCharacter(text: string): boolean {
   }
   return false;
 }
+
+/** The value a stepper tap gives: one up or down from the typed whole number (0 if it isn't one), kept in range. */
+export function stepLeaveDays(text: string, delta: 1 | -1, max: number): number {
+  const trimmed = text.trim();
+  const current = /^\d+$/.test(trimmed) ? Number(trimmed) : 0;
+  return Math.min(max, Math.max(0, current + delta));
+}

@@ -2,7 +2,7 @@
 
 Loaded only when working on files in `frontend/`. Root rules in `../CLAUDE.md` still apply.
 
-- UI is built **only** with Astryx (`@astryxdesign/core`, Stone theme, StyleX). No Tailwind, no other UI library.
+- UI is built **only** with Astryx (`@astryxdesign/core`, the LeaveWise theme on Stone in `src/theme/`, StyleX). No Tailwind, no other UI library.
 - Before any UI work, load the `astryx-ui` skill (`.claude/skills/astryx-ui/SKILL.md`): it holds the UI quality bar
   and the Astryx workflow (`npm run astryx -- build`, `template`, `component <Name> --dense`). Never guess props.
 - Lint enforces two Astryx rules: no raw `<div>`, no inline `style={{}}`. Don't disable them; fix the code.

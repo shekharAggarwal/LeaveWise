@@ -16,4 +16,18 @@ export const leavewiseTheme = defineTheme({
     '--color-icon-accent': ['#2b3aa8', '#c3caf9'],
     '--color-on-accent': ['#ffffff', '#15183a'],
   },
+  components: {
+    // A pressed weekly-off day reads as ink (design), not a faint tint.
+    'toggle-button': {
+      // Seven weekday buttons share one row of a 340 px card, so "Wed" needs the room more than padding does.
+      base: {
+        paddingInline: 'var(--spacing-1)',
+        minWidth: '0',
+      },
+      isPressed: {
+        backgroundColor: 'var(--color-background-inverted)',
+        color: 'var(--color-background-surface)',
+      },
+    },
+  },
 });

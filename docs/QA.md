@@ -84,17 +84,27 @@ or `passing` (green in the quality gate at the commit noted in `docs/ai/PROGRESS
 | Pasted line not a valid date in the year | Line number and reason; other lines load | `HolidayPasteParserTest`, `HolidayParseApiTest`, `App.test#pasted lines…` | passing |
 | Same holiday date added twice | Kept once, both names shown | `HolidayMergeTest`, `HolidaysApiTest#twoHolidays…`, `PlanApiTest#duplicateHolidayDates` | passing |
 | 0 leave days | Free long weekends only, note that no leave is used | `PlanApiTest#zeroLeavesNote`, `App.test#0 leave days…` | passing |
-| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `#onlyOneNote…` (3), `PlanApiTest#noBreakPossibleNoteSuggests…`, `#noBreakPossibleNoteHasNoSuggestionForLongWeekends` | passing |
+| No break possible | Reason plus a shorter-style suggestion | `PlannerRulesTest#noBreakPossible`, `#onlyOneNote…` (3), `PlanApiTest#noBreakPossibleNoteSuggests…`, `#noBreakPossibleNoteHasNoSuggestionForLongWeekends`; page: one "Try …" button per shorter style, one tap re-plans with it (`Redesign.test#no break possible`, 2) | passing |
 | Server-side errors are problem+json and say what to do | docs/API.md errors table | `ErrorFormatTest` (4), `ReviewFindingsApiTest` (12), `App.test#a server error shows its message and keeps the inputs` | passing |
 
 ## Coverage map: results (Must items)
 
 | Part | Tests | Status |
 | --- | --- | --- |
-| Summary: leaves used, total days off, breaks, unused leaves | `PlanApiTest#summary`, `App.test#plans with the ticked holidays…` ("2 leaves → 7 days off", "across 2 breaks") | passing |
+| Summary: leaves used, total days off, breaks, unused leaves | `PlanApiTest#summary`, `App.test#plans with the ticked holidays…` ("2 leaves → 7 days off", "across 2 breaks"), `Redesign.test#shows the summary figures…` (leaves used, days off, breaks, days off per leave) | passing |
 | Break list: dates, days off, leave dates, holidays, days off per leave | `PlanApiTest#breakFields`, `#daysOffPerLeaveIsRoundedToOneDecimal`, `LeaveBreakTest`, `App.test` (first break's five facts) | passing |
 | Year calendar: 12 months, colour **and** label, tap a day to see what it is | `PlanApiTest#daysHasOneEntryPerDateOfTheYear`, `#daysCarryKindPlannedHolidayNamesAndBreakIndex`, `App.test` (month headings, day button's spoken label, tapped-day line in a live region, legend), axe | passing |
 | Calendar file: one all-day event per break, notes list leave dates | `IcsWriterTest` (21), `IcsInjectionTest` (4), `IcsApiTest` (6), `App.test#downloads the .ics for the same inputs` | passing |
+
+## Coverage map: redesign additions (2026-10-10, not PRD rules)
+
+| Behaviour | Tests | Status |
+| --- | --- | --- |
+| Leave-day stepper: −/+ by one, 0 to 60, starts from 0 on text that isn't a whole number, clears the error; the field stays a text box named "Leave days" | `Redesign.test#leave-day stepper` (3) | passing |
+| Results panel says what it will hold before the first plan | `Redesign.test#shows what the panel will hold…` (with axe) | passing |
+| Stepper rule (whitespace, leading zeros, decimals, 20 digits, 0 and 60) | `validation.test#stepLeaveDays` (13) | passing |
+| Days off per leave rounds half up like the server | `figures.test#daysOffPerLeave` (5, incl. 43 / 20 = 2.2) | passing |
+| "Try …" waits for an in-flight plan; an invalid input keeps the break style | `Redesign.test#waits while a plan is on its way…` (deferred response) | passing |
 
 ## Coverage map: results (Nice to have, deferred until every Must is polished)
 

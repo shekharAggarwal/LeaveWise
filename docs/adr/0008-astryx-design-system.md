@@ -52,11 +52,14 @@ The owner approved a redesign drawn on a Claude Design canvas ("LeaveWise UI red
 holidays, warm-grey weekly offs) and, asked whether to keep Stone's palette unchanged as the brief says, chose a
 custom theme (docs/ai/REVIEW_LOG.md, 2026-10-10). So:
 
-- `frontend/src/theme/leavewise.ts` is a `defineTheme` with `extends: stoneTheme`: Stone's typography, scales, icons
-  and every token are inherited; only the accent family (`--color-accent`, `-accent-muted`, `text-accent`,
-  `icon-accent`, `on-accent`) is replaced by an indigo, in light and dark.
-- It is compiled with `astryx theme build` into a static CSS file plus a module (no runtime style injection, so the
-  production CSP holds; AI failure 14). The built files are committed; rebuild after every edit to the source.
+- `frontend/src/theme/leavewise.source.ts` is a `defineTheme` with `extends: stoneTheme`: Stone's typography,
+  scales, icons and every token are inherited; only the accent family (`--color-accent`, `-accent-muted`,
+  `text-accent`, `icon-accent`, `on-accent`) is replaced by an indigo, in light and dark. One component override:
+  a pressed `toggle-button` (weekly offs) is drawn in ink (`--color-background-inverted`) with tighter inline
+  padding, so seven weekday buttons fit one row at 360 px.
+- It is compiled with `astryx theme build` into `leavewise.css`, `.js` and `.d.ts` beside the source (no runtime
+  style injection, so the production CSP holds; AI failure 14). The built files are committed, excluded from
+  Prettier, and `astryx theme build src/theme/leavewise.source.ts --check` confirms they match the source.
 - Contrast of the new accent is checked by the real-browser axe run in light and dark (`npm run check:browser`).
 - Calendar day colours stay on Stone's categorical tokens (orange for holidays, muted for weekly offs) and the new
   accent for leave days, always with a letter code, so colour is never the only signal.

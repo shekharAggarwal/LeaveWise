@@ -5,15 +5,21 @@ import {useCallback, useEffect, useMemo, useRef, useState, type ReactNode} from 
 import * as stylex from '@stylexjs/stylex';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
+import {Card} from '@astryxdesign/core/Card';
 import {Center} from '@astryxdesign/core/Center';
 import {Divider} from '@astryxdesign/core/Divider';
-import {VStack} from '@astryxdesign/core/Layout';
+import {EmptyState} from '@astryxdesign/core/EmptyState';
+import {Icon} from '@astryxdesign/core/Icon';
+import {InputGroup} from '@astryxdesign/core/InputGroup';
+import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {RadioList, RadioListItem} from '@astryxdesign/core/RadioList';
 import {Section} from '@astryxdesign/core/Section';
 import {SegmentedControl, SegmentedControlItem} from '@astryxdesign/core/SegmentedControl';
 import {Skeleton} from '@astryxdesign/core/Skeleton';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {TextInput} from '@astryxdesign/core/TextInput';
+import {Token} from '@astryxdesign/core/Token';
+import {borderVars, colorVars, radiusVars} from '@astryxdesign/core/theme/tokens.stylex';
 import {ToggleButton, ToggleButtonGroup} from '@astryxdesign/core/ToggleButton';
 import {ApiError, getHolidays, getOptions, messageOf, planLeaves} from '../../api/client';
 import type {
@@ -24,19 +30,47 @@ import type {
   PlanResponse,
   Weekday,
 } from '../../api/types';
-import {parseLeaveDays} from '../../lib/validation';
+import {parseLeaveDays, stepLeaveDays} from '../../lib/validation';
+import {MinusIcon, PlusIcon} from '../../lib/icons';
 import {Results} from '../results/Results';
 import {HolidayEditor, type HolidayLoad} from './HolidayEditor';
 import {addHoliday, type HolidayRow} from './holidayRows';
 
-// Responsive contract for the weekly-off buttons (no ToggleButtonGroup prop does this):
-//   >=480 px  one row of seven, wrapping only if the frame is narrower than the buttons
-//   <480 px   a 4-column grid: Mon to Thu, then Fri to Sun, instead of Sun alone on a second row
+// Layout widths below are raw px because Astryx 0.6.6 has no size tokens at this scale: the inputs card is
+// 340 to 420 px beside a results column of at least 520 px, and below 800 px they stack (the canvas's phone
+// layout). The weekly offs are always one row of seven equal columns; the theme trims the toggle padding so
+// "Wed" fits at 360 px.
 const styles = stylex.create({
+  // The page paints the theme's body colour itself, so text outside the cards (the header) sits on a known
+  // background in light and dark mode.
+  page: {
+    minHeight: '100vh',
+    backgroundColor: colorVars['--color-background-body'],
+  },
+  columns: {
+    width: '100%',
+    alignItems: 'flex-start',
+  },
+  inputs: {
+    flex: '1 1 340px',
+    maxWidth: {default: '420px', '@media (max-width: 799px)': '100%'},
+  },
+  stepper: {
+    maxWidth: '220px',
+  },
+  results: {
+    flex: '999 1 520px',
+    minWidth: 0,
+  },
+  emptyPanel: {
+    borderRadius: radiusVars['--radius-page'],
+    borderStyle: 'dashed',
+    borderWidth: borderVars['--border-width'],
+    borderColor: colorVars['--color-border-emphasized'],
+  },
   weekdays: {
-    flexWrap: 'wrap',
-    display: {default: null, '@media (max-width: 479px)': 'grid'},
-    gridTemplateColumns: {default: null, '@media (max-width: 479px)': 'repeat(4, 1fr)'},
+    display: 'grid',
+    gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
   },
 });
 
@@ -59,6 +93,26 @@ const BREAK_STYLE_HINTS: Record<BreakStyleId, string> = {
   SHORT_TRIPS: 'Breaks of 5 or more days off',
   BIG_TRIPS: 'Breaks of 9 or more days off',
 };
+
+const BREAK_STYLE_ORDER: BreakStyleId[] = ['LONG_WEEKENDS', 'SHORT_TRIPS', 'BIG_TRIPS'];
+
+function inputKeyOf(parts: {
+  year: number | null;
+  leaveText: string;
+  weeklyOffs: Weekday[];
+  breakStyle: BreakStyleId;
+  rows: HolidayRow[];
+  ticked: Set<IsoDate>;
+}): string {
+  return JSON.stringify({
+    year: parts.year,
+    leaveText: parts.leaveText.trim(),
+    weeklyOffs: [...parts.weeklyOffs].sort(),
+    breakStyle: parts.breakStyle,
+    rows: parts.rows,
+    ticked: [...parts.ticked].sort(),
+  });
+}
 
 type Load<T> = {state: 'loading'} | {state: 'error'; message: string} | {state: 'ready'; value: T};
 
@@ -158,15 +212,7 @@ export function PlannerPage() {
 
   // Everything that shapes a plan; when it differs from the shown plan's, the plan is out of date.
   const inputKey = useMemo(
-    () =>
-      JSON.stringify({
-        year,
-        leaveText: leaveText.trim(),
-        weeklyOffs: [...weeklyOffs].sort(),
-        breakStyle,
-        rows,
-        ticked: [...ticked].sort(),
-      }),
+    () => inputKeyOf({year, leaveText, weeklyOffs, breakStyle, rows, ticked}),
     [year, leaveText, weeklyOffs, breakStyle, rows, ticked],
   );
 
@@ -197,7 +243,8 @@ export function PlannerPage() {
   const currentYear = Number(opts.today.slice(0, 4));
   const holidaysReady = holidays.state === 'ready';
 
-  const plan = async () => {
+  /** Plans with the current inputs; `style` replaces the break style first (the no-break suggestion). */
+  const plan = async (style: BreakStyleId = breakStyle) => {
     if (planning.current || !holidaysReady || year === null) return;
     const leaveDays = parseLeaveDays(leaveText, opts.leaveDays.max);
     const next = {
@@ -206,17 +253,19 @@ export function PlannerPage() {
     };
     setErrors(next);
     if (next.leaveDays || next.weeklyOffs || leaveDays === null) return;
+    // Only a plan that will be sent switches the break style (a refused one leaves the inputs as they were).
+    if (style !== breakStyle) setBreakStyle(style);
     const request: PlanRequest = {
       year,
       leaveDays,
       weeklyOffs: WEEKDAYS.map((d) => d.id).filter((d) => weeklyOffs.includes(d)),
-      breakStyle,
+      breakStyle: style,
       holidays: rows
         .filter((r) => ticked.has(r.date))
         .flatMap((r) => r.names.map((name) => ({date: r.date, name}))),
     };
     const seq = ++planSeq.current;
-    const keyAtSubmit = inputKey;
+    const keyAtSubmit = inputKeyOf({year, leaveText, weeklyOffs, breakStyle: style, rows, ticked});
     planning.current = true;
     setIsPlanning(true);
     try {
@@ -240,153 +289,217 @@ export function PlannerPage() {
     }
   };
 
+  const max = opts.leaveDays.max;
+  const typed = leaveText.trim();
+  const typedNumber = /^\d+$/.test(typed) ? Number(typed) : null;
+  const step = (delta: 1 | -1) => {
+    setLeaveText(String(stepLeaveDays(leaveText, delta, max)));
+    setErrors((prev) => ({...prev, leaveDays: undefined}));
+  };
+  const shorterStyles = BREAK_STYLE_ORDER.slice(
+    0,
+    BREAK_STYLE_ORDER.indexOf(result?.request.breakStyle ?? 'LONG_WEEKENDS'),
+  )
+    .reverse()
+    .flatMap((id) => opts.breakStyles.filter((s) => s.id === id));
+
   return (
     <Frame>
-      <VStack gap={6}>
-        <VStack gap={2}>
-          <Heading level={1} type="display-2">
-            LeaveWise
-          </Heading>
-          <Text type="body" color="secondary">
-            Pick the leave days that turn weekends and holidays into the longest breaks.
-          </Text>
+      <HStack gap={6} wrap="wrap" xstyle={styles.columns} as="main">
+        <VStack xstyle={styles.inputs}>
+          <Card padding={6}>
+            <VStack gap={6}>
+              <VStack gap={2}>
+                <Heading level={2} type="display-3">
+                  Turn your leaves into the longest breaks
+                </Heading>
+                <Text type="body" color="secondary">
+                  Enter your leave days. Every other input has a default.
+                </Text>
+              </VStack>
+
+              <VStack gap={4}>
+                <VStack gap={1}>
+                  <Text type="label" color="secondary">
+                    Year
+                  </Text>
+                  <SegmentedControl
+                    label="Year"
+                    value={String(year)}
+                    onChange={(value) => changeYear(Number(value))}
+                  >
+                    {opts.years.map((y) => (
+                      <SegmentedControlItem key={y} value={String(y)} label={String(y)} />
+                    ))}
+                  </SegmentedControl>
+                  {year === currentYear && (
+                    <Text type="supporting" color="secondary">
+                      Only days after today are planned.
+                    </Text>
+                  )}
+                </VStack>
+                <InputGroup
+                  label="Leave days"
+                  description="Whole number from 0 to 60."
+                  size="lg"
+                  status={errors.leaveDays ? {type: 'error', message: errors.leaveDays} : undefined}
+                  xstyle={styles.stepper}
+                >
+                  <Button
+                    label="One fewer leave day"
+                    isIconOnly
+                    variant="ghost"
+                    icon={<Icon icon={MinusIcon} />}
+                    isDisabled={typedNumber !== null && typedNumber <= 0}
+                    onClick={() => step(-1)}
+                  />
+                  {/* In a group the input's name is the group label plus its own; an empty own label keeps the PRD
+                name "Leave days" instead of "Leave days Leave days". */}
+                  <TextInput
+                    label=""
+                    value={leaveText}
+                    onChange={(value) => {
+                      setLeaveText(value);
+                      setErrors((prev) => ({...prev, leaveDays: undefined}));
+                    }}
+                    onEnter={() => void plan()}
+                  />
+                  <Button
+                    label="One more leave day"
+                    isIconOnly
+                    variant="ghost"
+                    icon={<Icon icon={PlusIcon} />}
+                    isDisabled={typedNumber !== null && typedNumber >= max}
+                    onClick={() => step(1)}
+                  />
+                </InputGroup>
+              </VStack>
+
+              <Divider />
+
+              {year !== null && (
+                <HolidayEditor
+                  key={year}
+                  year={year}
+                  load={holidays}
+                  rows={rows}
+                  ticked={ticked}
+                  onAdd={addHolidays}
+                  onTickedChange={setTicked}
+                  onRetry={retryHolidays}
+                />
+              )}
+
+              <Divider />
+
+              <VStack gap={4}>
+                <VStack gap={1}>
+                  <Text type="label" color="secondary">
+                    Weekly offs
+                  </Text>
+                  <ToggleButtonGroup
+                    xstyle={styles.weekdays}
+                    label="Weekly offs"
+                    type="multiple"
+                    value={weeklyOffs}
+                    onChange={(value) => {
+                      setWeeklyOffs((Array.isArray(value) ? value : []) as Weekday[]);
+                      setErrors((prev) => ({...prev, weeklyOffs: undefined}));
+                    }}
+                  >
+                    {WEEKDAYS.map((d) => (
+                      <ToggleButton key={d.id} value={d.id} label={d.label} />
+                    ))}
+                  </ToggleButtonGroup>
+                  {errors.weeklyOffs && <Banner status="error" title={errors.weeklyOffs} />}
+                </VStack>
+                <RadioList
+                  label="Break style"
+                  value={breakStyle}
+                  onChange={(value) => setBreakStyle(value as BreakStyleId)}
+                >
+                  {opts.breakStyles.map((s) => (
+                    <RadioListItem
+                      key={s.id}
+                      value={s.id}
+                      label={s.label}
+                      description={BREAK_STYLE_HINTS[s.id]}
+                    />
+                  ))}
+                </RadioList>
+              </VStack>
+
+              <VStack gap={3}>
+                {errors.form && <Banner status="error" title={errors.form} />}
+                {result && result.inputKey !== inputKey && (
+                  <Text type="supporting" color="secondary" justify="center">
+                    Your inputs changed since the plan below was made.
+                  </Text>
+                )}
+                <Button
+                  label="Plan my leaves"
+                  variant="primary"
+                  size="lg"
+                  width="100%"
+                  isLoading={isPlanning}
+                  isDisabled={!holidaysReady}
+                  onClick={() => void plan()}
+                />
+                {holidays.state === 'loading' && (
+                  <Text type="supporting" color="secondary" justify="center">
+                    Loading the holiday list for {year}…
+                  </Text>
+                )}
+              </VStack>
+            </VStack>
+          </Card>
         </VStack>
 
-        <VStack gap={4}>
-          <VStack gap={1}>
-            <Text type="label" color="secondary">
-              Year
-            </Text>
-            <SegmentedControl
-              label="Year"
-              value={String(year)}
-              onChange={(value) => changeYear(Number(value))}
-            >
-              {opts.years.map((y) => (
-                <SegmentedControlItem key={y} value={String(y)} label={String(y)} />
-              ))}
-            </SegmentedControl>
-            {year === currentYear && (
-              <Text type="supporting" color="secondary">
-                Only days after today are planned.
-              </Text>
-            )}
-          </VStack>
-          <TextInput
-            label="Leave days"
-            description="Whole number from 0 to 60."
-            value={leaveText}
-            onChange={(value) => {
-              setLeaveText(value);
-              setErrors((prev) => ({...prev, leaveDays: undefined}));
-            }}
-            onEnter={() => void plan()}
-            width={160}
-            status={errors.leaveDays ? {type: 'error', message: errors.leaveDays} : undefined}
-          />
-        </VStack>
-
-        <Divider />
-
-        {year !== null && (
-          <HolidayEditor
-            key={year}
-            year={year}
-            load={holidays}
-            rows={rows}
-            ticked={ticked}
-            onAdd={addHolidays}
-            onTickedChange={setTicked}
-            onRetry={retryHolidays}
-          />
-        )}
-
-        <Divider />
-
-        <VStack gap={4}>
-          <VStack gap={1}>
-            <Text type="label" color="secondary">
-              Weekly offs
-            </Text>
-            <ToggleButtonGroup
-              xstyle={styles.weekdays}
-              label="Weekly offs"
-              type="multiple"
-              value={weeklyOffs}
-              onChange={(value) => {
-                setWeeklyOffs((Array.isArray(value) ? value : []) as Weekday[]);
-                setErrors((prev) => ({...prev, weeklyOffs: undefined}));
-              }}
-            >
-              {WEEKDAYS.map((d) => (
-                <ToggleButton key={d.id} value={d.id} label={d.label} />
-              ))}
-            </ToggleButtonGroup>
-            {errors.weeklyOffs && <Banner status="error" title={errors.weeklyOffs} />}
-          </VStack>
-          <RadioList
-            label="Break style"
-            value={breakStyle}
-            onChange={(value) => setBreakStyle(value as BreakStyleId)}
-          >
-            {opts.breakStyles.map((s) => (
-              <RadioListItem
-                key={s.id}
-                value={s.id}
-                label={s.label}
-                description={BREAK_STYLE_HINTS[s.id]}
-              />
-            ))}
-          </RadioList>
-        </VStack>
-
-        <VStack gap={3}>
-          {errors.form && <Banner status="error" title={errors.form} />}
-          {result && result.inputKey !== inputKey && (
-            <Text type="supporting" color="secondary" justify="center">
-              Your inputs changed since the plan below was made.
-            </Text>
-          )}
-          <Button
-            label="Plan my leaves"
-            variant="primary"
-            size="lg"
-            width="100%"
-            isLoading={isPlanning}
-            isDisabled={!holidaysReady}
-            onClick={() => void plan()}
-          />
-          {holidays.state === 'loading' && (
-            <Text type="supporting" color="secondary" justify="center">
-              Loading the holiday list for {year}…
-            </Text>
-          )}
-        </VStack>
-
-        {result && (
-          <>
-            <Divider />
+        <VStack gap={6} xstyle={styles.results}>
+          {result ? (
             <Results
               key={result.seq}
               plan={result.plan}
               request={result.request}
               isStale={result.inputKey !== inputKey}
+              shorterStyles={shorterStyles}
+              onTryStyle={(style) => void plan(style)}
+              isBusy={isPlanning || !holidaysReady}
             />
-          </>
-        )}
-      </VStack>
+          ) : (
+            <Section variant="transparent" padding={8} xstyle={styles.emptyPanel}>
+              <EmptyState
+                headingLevel={2}
+                icon={<Icon icon="calendar" size="lg" color="secondary" />}
+                title="Your plan shows here"
+                description="Tap Plan my leaves to see your breaks, the days off they give and the whole year on a calendar."
+              />
+            </Section>
+          )}
+        </VStack>
+      </HStack>
     </Frame>
   );
 }
 
-/** The template's page frame. */
+/** The page frame: the header, then the content, centred up to 1200 px. */
 function Frame({children}: {children: ReactNode}) {
   return (
-    <Center axis="horizontal">
-      <VStack hAlign="center" width="100%">
-        <Section maxWidth={800} padding={6} paddingBlock={10} variant="section">
-          {children}
-        </Section>
+    <Center axis="horizontal" xstyle={styles.page}>
+      <VStack width="100%" maxWidth={1200} gap={4} paddingInline={4} paddingBlockEnd={10}>
+        <HStack gap={3} wrap="wrap" vAlign="center" justify="between" paddingBlock={5} as="header">
+          <HStack gap={2} vAlign="center">
+            <Icon icon="calendar" color="accent" size="lg" />
+            <Heading level={1} type="display-3">
+              LeaveWise
+            </Heading>
+          </HStack>
+          <HStack gap={2} wrap="wrap">
+            <Token label="No login" size="sm" />
+            <Token label="Nothing stored" size="sm" />
+          </HStack>
+        </HStack>
+        {children}
       </VStack>
     </Center>
   );

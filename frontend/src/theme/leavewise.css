@@ -656,6 +656,16 @@
     --astryx-section-padding: var(--spacing-3);
   }
 
+  .astryx-toggle-button {
+    padding-inline: var(--spacing-1);
+    min-width: 0;
+  }
+
+  .astryx-toggle-button[data-is-pressed="isPressed"] {
+    background-color: var(--color-background-inverted);
+    color: var(--color-background-surface);
+  }
+
   .astryx-text[data-color="primary"] { color: var(--color-text-primary); }
 
   .astryx-heading[data-color="primary"] { color: var(--color-text-primary); }

@@ -496,6 +496,16 @@ export const leavewiseTheme = {
       "base": {
         "padding": "var(--spacing-3)"
       }
+    },
+    "toggle-button": {
+      "base": {
+        "paddingInline": "var(--spacing-1)",
+        "minWidth": "0"
+      },
+      "isPressed": {
+        "backgroundColor": "var(--color-background-inverted)",
+        "color": "var(--color-background-surface)"
+      }
     }
   },
   __onDark: {

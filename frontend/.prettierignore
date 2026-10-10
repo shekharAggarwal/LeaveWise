@@ -3,3 +3,6 @@ node_modules
 coverage
 package-lock.json
 CLAUDE.md
+src/theme/leavewise.css
+src/theme/leavewise.js
+src/theme/leavewise.d.ts

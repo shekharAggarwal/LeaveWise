@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {hasControlCharacter, parseLeaveDays} from './validation';
+import {hasControlCharacter, parseLeaveDays, stepLeaveDays} from './validation';
 
 describe('parseLeaveDays (PRD: whole number from 0 to 60)', () => {
   it.each([
@@ -31,4 +31,24 @@ describe('hasControlCharacter (same rule as the server)', () => {
       expect(hasControlCharacter(text)).toBe(false);
     },
   );
+});
+
+describe('stepLeaveDays (the −/+ buttons)', () => {
+  it.each([
+    ['12', 1, 13],
+    ['12', -1, 11],
+    [' 12 ', 1, 13],
+    ['007', 1, 8],
+    ['60', 1, 60],
+    ['0', -1, 0],
+    ['75', -1, 60],
+    ['12.5', 1, 1],
+    ['abc', 1, 1],
+    ['abc', -1, 0],
+    ['', 1, 1],
+    ['-5', 1, 1],
+    ['99999999999999999999', -1, 60],
+  ] as const)('%j and %d give %d', (text, delta, expected) => {
+    expect(stepLeaveDays(text, delta, 60)).toBe(expected);
+  });
 });

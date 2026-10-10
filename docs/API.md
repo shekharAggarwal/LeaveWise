@@ -225,6 +225,20 @@ shape, so they can be added without breaking the contract:
 | Other good breaks | `otherBreaks` in the `/api/plan` response: up to 10 candidate breaks not in the plan, ranked by days off per leave (ties: earlier start). |
 | Share link | No API change: the page keeps the inputs in its URL query (`?y=2027&l=12&w=SA,SU&s=LW&h=...`) and plans on load. |
 
+## Page copy beyond the PRD (browser only)
+
+Added with the 2026-10-10 redesign; the API responses above are unchanged.
+
+| Where | Text |
+| --- | --- |
+| Input card heading | "Turn your leaves into the longest breaks" / "Enter your leave days. Every other input has a default." |
+| Leave-day stepper buttons (accessible names) | "One fewer leave day", "One more leave day" |
+| Results before the first plan | "Your plan shows here" / "Tap Plan my leaves to see your breaks, the days off they give and the whole year on a calendar." |
+| Summary figures | "Leaves used" (`n of balance`), "Days off in breaks", "Breaks", "Days off per leave" (days off ÷ leaves used, one decimal, rounded half up like each break's `daysOffPerLeave`) |
+| `NO_BREAK_POSSIBLE` note | One button per shorter break style: "Try Short trips", "Try Long weekends"; a tap plans again with that style (disabled while a plan or the holiday list is loading; if an input is invalid, nothing is sent and the style stays) |
+| Header | "No login", "Nothing stored" |
+| Unchanged from before the redesign | "Your inputs changed since the plan below was made.", "Loading the holiday list for {year}…", "Only days after today are planned.", "Download calendar file (.ics)" |
+
 ## `GET /actuator/health`
 
 `200 {"status":"UP"}` for the host's health check (exactly that body; Kubernetes probe groups are off). No other

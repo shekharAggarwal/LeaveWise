@@ -82,6 +82,8 @@ astryx_doctor() {
 
 # Starts the jar from "Backend tests" serving the page from "Frontend build" (fixture holidays, a
 # free port), then runs the real-browser check: overflow, CSP, touch targets, axe, plan time.
+# The check loads the page 8 times (about 24 API calls in a few seconds), more than the production
+# burst of 20, so this jar gets a larger burst; the rate limit itself is tested in RateLimitFilterTest.
 browser_check() {
   local port log pid status
   port="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')"
@@ -89,6 +91,7 @@ browser_check() {
   java -jar "$ROOT/backend/target/leavewise.jar" --server.port="$port" \
     --leavewise.holidays.location="file:$ROOT/backend/src/test/resources/fixtures/holidays/india-*.json" \
     --leavewise.holidays.allow-test-data=true \
+    --leavewise.rate-limit.burst=200 \
     --spring.web.resources.static-locations="file:$ROOT/frontend/dist/" >"$log" 2>&1 &
   pid=$!
   for _ in $(seq 1 60); do

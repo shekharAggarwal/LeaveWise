@@ -242,3 +242,16 @@ Template:
 - Root cause: "the scan couldn't run here" was treated as "nothing to report" instead of "not done".
 - Rule added: CLAUDE.md working rules: "A check that couldn't run is not passed: leave its step unticked and say
   what blocked it."
+
+## 19. The summary's days off per leave rounded differently from the server (2026-10-10)
+- What the AI got wrong (uncommitted redesign of `frontend/src/features/results/Results.tsx`): the new "Days off per
+  leave" figure used `(totalDaysOff / leavesUsed).toFixed(1)`, while the server rounds half up
+  (`LeaveBreak.daysOffPerLeave`: `Math.round(days * 10.0 / leaves) / 10.0`). 43 days over 20 leaves showed 2.1 on
+  the page against 2.2 from the server.
+- How it was caught: code-reviewer subagent on the redesign diff (checked in node).
+- Fix: `frontend/src/lib/figures.ts` `daysOffPerLeave` uses the server's formula; `figures.test.ts` (43 / 20 is 2.2)
+  failed before the helper existed. Committed with the redesign.
+- Root cause: a figure the server already computes per break was re-derived in the browser without reading the
+  server's rounding.
+- Rule added: none; CLAUDE.md already has it (AI failure 16: a rule in both the browser and the server is one rule,
+  same counting). It was not applied to a new derived number.
