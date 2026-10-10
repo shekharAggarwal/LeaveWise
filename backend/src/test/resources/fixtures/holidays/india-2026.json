@@ -1,0 +1,17 @@
+{
+  "testData": true,
+  "country": "IN",
+  "year": 2026,
+  "list": "Fixture list 2026",
+  "source": {
+    "publisher": "Fixture publisher",
+    "title": "Fixture memorandum 2026",
+    "url": "https://fixture.gov.in/holidays-2026.pdf",
+    "retrievedOn": "2026-01-05"
+  },
+  "holidays": [
+    {"date": "2026-05-14", "name": "Fixture Holiday 5"},
+    {"date": "2026-11-09", "name": "Fixture Holiday 6"},
+    {"date": "2026-11-09", "name": "Fixture Holiday 7"}
+  ]
+}
