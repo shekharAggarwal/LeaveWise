@@ -19,6 +19,8 @@ Loaded only when working on files in `frontend/`. Root rules in `../CLAUDE.md` s
   build, and load the jar in Chromium after adding a component that injects styles. (AI failure 14)
 - A design (the Claude Design canvas) is the visual spec, the PRD is the contract: when they disagree the PRD wins.
   Check every results screen, phone and desktop, against the PRD's Must fields. (AI failure 20)
+- In tests, find text Astryx may announce (errors, notes) with `shownText` from `src/test/shownText.ts`, never a
+  single-match `getByText`/`findByText`: the live region briefly holds a second copy. (AI failure 21)
 - The block below is managed by `astryx init`. Never edit inside it.
 
 <!-- ASTRYX:START -->

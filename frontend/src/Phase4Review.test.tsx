@@ -4,15 +4,12 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 import {stubApi} from './test/fakeApi';
+import {shownText} from './test/shownText';
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
-
-/** Error text shown on the page; Astryx's screen-reader live region keeps the last announcement. */
-const shownText = (text: string) =>
-  screen.queryAllByText(text).filter((el) => !el.closest('[data-astryx-live-region]'));
 
 async function renderLoaded() {
   stubApi();
@@ -29,7 +26,7 @@ describe('field errors clear once the field is edited (review 5)', () => {
     await user.clear(input);
     await user.type(input, '61');
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    expect(screen.getByText('Enter a whole number from 0 to 60.')).toBeInTheDocument();
+    expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(1);
     await user.type(input, '{Backspace}');
     expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(0);
   });

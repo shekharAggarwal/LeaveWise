@@ -267,3 +267,18 @@ Template:
   Must list; the canvas is a visual spec, the PRD is the contract.
 - Rule added: frontend/CLAUDE.md: when a design and the PRD disagree, the PRD wins; check each results screen against
   the PRD's Must fields.
+
+## 21. Tests matched error text that Astryx's live region also shows (2026-10-12)
+- What the AI got wrong: four frontend tests first checked a PRD error with a single-match query
+  (`getByText`/`findByText`/`getAllByText(...).toHaveLength(1)`): `Phase4Review.test.tsx` (`8a33431`),
+  `Redesign.test.tsx` (`068cfda`), `App.test.tsx:143` and `ReviewFindings.test.tsx:201`. Astryx's screen-reader live
+  region (`data-astryx-live-region`) repeats the announcement for a moment, so the query sometimes found two elements.
+  Both files already had a helper that filters out the live region, used only for the later "error cleared" checks.
+- How it was caught: `scripts/quality-gate.sh` failed twice in a row, each time on a different test ("Found
+  multiple elements with the text: Enter a whole number from 0 to 60."): `Redesign.test.tsx` (leave-day stepper),
+  then `Phase4Review.test.tsx` (field errors clear, leave days). Each passed on rerun.
+- Fix: shared `frontend/src/test/shownText.ts` replaces the two local copies; all four checks use it (with
+  `waitFor` where the test awaited). Five suite runs in a row, 115 of 115; gate 12 of 12 PASS.
+- Root cause: the live region was known (the helper existed) but applied only to "is gone" checks, not "is shown"
+  checks; a single-match query on announced text is timing-dependent.
+- Rule added: frontend/CLAUDE.md: query text that Astryx may announce with `shownText`, never a single-match query.

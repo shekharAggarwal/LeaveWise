@@ -6,6 +6,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {App} from './App';
 import type {PlanRequest, PlanResponse} from './api/types';
 import {deferred, holidays2027, plan2027, problem, stubApi} from './test/fakeApi';
+import {shownText} from './test/shownText';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -198,8 +199,7 @@ describe('errors say what to do next (reviews: raw error text)', () => {
     });
     const {user} = await renderLoaded();
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByText('Enter a whole number from 0 to 60.');
-    expect(screen.getAllByText('Enter a whole number from 0 to 60.')).toHaveLength(1);
+    await waitFor(() => expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(1));
   });
 
   it('shows the no-break note with its suggestion', async () => {

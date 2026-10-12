@@ -7,6 +7,7 @@ import {App} from './App';
 import type {PlanRequest} from './api/types';
 import {expectNoAxeViolations} from './test/axe';
 import {deferred, holidays2027, noHolidays2026, plan2027, stubApi} from './test/fakeApi';
+import {shownText} from './test/shownText';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -23,9 +24,6 @@ async function renderLoaded() {
 const leaveBox = () => screen.getByRole('textbox', {name: 'Leave days'});
 
 /** Visible copies of a message; Astryx also keeps the last one in its screen-reader announcer. */
-const shown = (text: string) =>
-  screen.queryAllByText(text).filter((el) => !el.closest('[data-astryx-live-region]'));
-
 describe('leave-day stepper', () => {
   it('steps the leave days by one and keeps the field a text box', async () => {
     stubApi();
@@ -56,11 +54,10 @@ describe('leave-day stepper', () => {
     await user.clear(leaveBox());
     await user.type(leaveBox(), 'abc');
     await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-    await screen.findByText('Enter a whole number from 0 to 60.');
-    expect(shown('Enter a whole number from 0 to 60.')).toHaveLength(1);
+    await waitFor(() => expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(1));
     await user.click(screen.getByRole('button', {name: 'One more leave day'}));
     expect(leaveBox()).toHaveValue('1');
-    expect(shown('Enter a whole number from 0 to 60.')).toHaveLength(0);
+    expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(0);
 
     await user.clear(leaveBox());
     await user.type(leaveBox(), '75');

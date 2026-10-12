@@ -5,6 +5,7 @@ import {App} from './App';
 import type {PlanRequest} from './api/types';
 import {expectNoAxeViolations} from './test/axe';
 import {problem, stubApi} from './test/fakeApi';
+import {shownText} from './test/shownText';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -140,7 +141,7 @@ describe('Validation and errors (PRD table)', () => {
       await user.clear(input);
       await user.type(input, bad);
       await user.click(screen.getByRole('button', {name: 'Plan my leaves'}));
-      expect(await screen.findByText('Enter a whole number from 0 to 60.')).toBeInTheDocument();
+      await waitFor(() => expect(shownText('Enter a whole number from 0 to 60.')).toHaveLength(1));
       expect(calls.some((c) => c.url === '/api/plan')).toBe(false);
     },
   );
