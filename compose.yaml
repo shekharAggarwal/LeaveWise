@@ -1,0 +1,11 @@
+# Local run: `docker compose up --build`, then open http://localhost:8080. Stop with `docker compose down`.
+# The health check comes from the Dockerfile; settings and their defaults are in docs/DEPLOYMENT.md.
+services:
+  leavewise:
+    build: .
+    image: leavewise
+    ports:
+      - "8080:8080"
+    # Same memory as Render's Free plan, so a local run shows how the app behaves in production.
+    mem_limit: 512m
+    restart: unless-stopped
