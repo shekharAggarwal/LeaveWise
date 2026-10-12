@@ -46,7 +46,7 @@ You need Java 21 and Node 22, or just Docker.
 
 ```sh
 # Docker: one image serves the page and the API
-docker compose up --build                     # stop with: docker compose down
+docker compose up                             # builds the image each time; stop with: docker compose down
 # or: docker build -t leavewise . && docker run --rm -p 8080:8080 leavewise
 # open http://localhost:8080
 

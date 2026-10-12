@@ -9,7 +9,7 @@ HTTPS. The default host is Render, set up by [`render.yaml`](../render.yaml).
 | Environment | Where | How it runs | Holiday data |
 | --- | --- | --- | --- |
 | Development | Laptop | `cd backend && ./mvnw spring-boot:run` (port 8080) and `cd frontend && npm run dev` (Vite, proxies `/api` to 8080) | Bundled files in `backend/src/main/resources/holidays/` |
-| Local container | Laptop or CI | `docker compose up --build` ([`compose.yaml`](../compose.yaml): port 8080, 512 MB like Render Free), or `docker build -t leavewise . && docker run --rm -p 8080:8080 leavewise` | Bundled files, baked into the jar |
+| Local container | Laptop or CI | `docker compose up` ([`compose.yaml`](../compose.yaml): builds the image each time, port 8080, 512 MB like Render Free), or `docker build -t leavewise . && docker run --rm -p 8080:8080 leavewise` | Bundled files, baked into the jar |
 | CI | GitHub Actions | `.github/workflows/ci.yml`: quality gate, dependency scan, image build and smoke test; nothing is pushed or deployed | Test fixtures for tests; bundled files in the image |
 | Production | Render, one web service | `render.yaml`, deployed from `main` after CI passes | Bundled files, baked into the jar |
 
