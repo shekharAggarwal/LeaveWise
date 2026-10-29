@@ -144,6 +144,7 @@ Even the demo video is AI-made: Claude Code wrote the script, recorded the app a
 - Claude Docs to hold the PRD, which was copied word for word into the repo.
 - Claude Design for the redesign canvas I approved before the UI was rebuilt.
 - Claude in Chrome and Playwright for checking the running app in a real browser.
+- For the demo video: macOS text-to-speech (voice Aman) reads the narration, and Claude Code wrote the script and drove Playwright to record it.
 
 No other AI tools were used.
 
