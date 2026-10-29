@@ -69,7 +69,8 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - Dependencies: `npm audit --omit=dev`: 0 vulnerabilities. `npm audit` with dev dependencies: 5 high, all one
   advisory (GHSA-vfj7-8cjw-p6xm, `braces` stack exhaustion, no fix released) via `micromatch` and `fast-glob` in
   `@astryxdesign/build` and `@stylexjs/eslint-plugin`. Build and lint tooling only, fed only the repo's own files,
-  never shipped: explained, not fixed. Backend: Spring Boot 4.1.1 is the newest 4.1 patch (Maven Central metadata,
+  never shipped: explained, not fixed (GitHub withdrew the advisory on 2026-10-23; the ignore was removed on
+  2026-10-29). Backend: Spring Boot 4.1.1 is the newest 4.1 patch (Maven Central metadata,
   2026-10-10); a CVE scan of the 55 runtime jars could not run here (api.osv.dev is blocked by the VM's network
   policy), so it went into CI in Phase 5.
 - Correction (Phase 5, AI failure 18): the dependency step above was ticked before the backend was scanned. The
@@ -243,3 +244,14 @@ Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px
 - [ ] LAPTOP: run the app locally, check every screen at phone and desktop widths, fix, save screenshots
 - [ ] LAPTOP: quality-gate, commit and push
 - [ ] STOP 4: remaining human steps in order
+
+## Submission (2026-10-29)
+
+- The organisers' form (hackathon-55.lovable.app/submit, read in Chrome while signed in) asks for repository links,
+  a demo video link and 20 written answers; it has no ZIP upload. Drafts with each field's limit:
+  `docs/SUBMISSION_ANSWERS.md`. The demo script now has a code walkthrough, as the form asks.
+- CI run on `9db8017` failed only its dependency scan: advisories published after 12 Oct in three dev-only packages
+  (`fast-uri` 3.1.8 via secretlint's ajv, `undici` 7.30.0 via jsdom, `zod` 4.6.5 via the Astryx CLI and
+  eslint-plugin-react-hooks). `npm update` moved them to 3.1.9, 7.30.1 and 4.6.7 (engines checked against Node 22);
+  CI's osv-scanner image run locally then reported no issues. The `braces` ignore was unused (advisory withdrawn
+  2026-10-23) and was removed.

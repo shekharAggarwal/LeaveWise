@@ -306,7 +306,7 @@ Risks:
 - Holiday data. Lists change, and companies differ. The app reminds users to check their company's official list, and each bundled file records its source.
 - Astryx is in beta. Versions are pinned exactly, and lint rules keep the UI inside the design system, so an upgrade is a deliberate step and not a surprise.
 - Free hosting sleeps when idle and has limited memory. The app starts in about 2 seconds and stays around 150 MB after 50 full-year plans, so it fits, but the first load can be slow.
-- There's a dev-only advisory in the `braces` package (used by build and lint tools, never shipped). No fix has been released yet, so it's documented, not fixed.
+- New advisories keep appearing for dependencies. CI scans them on every push, and on 29 Oct it caught three new ones in dev-only tools (fast-uri, undici, zod). All three had patch releases, so they were updated the same day.
 - The rate limit trusts the forwarded client IP only from private proxy addresses. That's safe behind the host's proxy, and the deployment guide says how to change it otherwise.
 
 Future improvements:
