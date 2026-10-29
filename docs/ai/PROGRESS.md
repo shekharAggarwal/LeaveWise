@@ -276,3 +276,9 @@ Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px
   (history kept, `main` is the default, old links redirect), and locally with `git branch -m`. `.claude/settings.json`
   still blocks Claude from pushing to `main`, as the form's guardrails answer says, so later changes go on a
   `claude/...` branch for the owner to merge.
+- Submitted on 2026-10-29 at 15:39 IST from the owner's FiftyFive Chrome profile, on the owner's instruction
+  ("merged now check if all is good then submit using 55tech chrome profile"). Checked first: all 20 answers match
+  `docs/SUBMISSION_ANSWERS.md` (SHA-256 of each field), the video opens signed out, the repository is public with
+  `main` as the default branch, section H "No", the accuracy box ticked by the owner, and CI green on `main`
+  (`f5154b2`: quality gate, dependency scan, Docker image). The form showed "Submission received" and says the
+  submission can be edited any time.

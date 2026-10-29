@@ -33,7 +33,6 @@ Steps that need the owner's accounts, money decisions or judgement. Full order i
    choice before the first apply, then run "After every deploy" there (rate limit per device included).
 5. **Add the live link** to `README.md` and push.
 6. **Test on a phone** (the PRD's acceptance item) and run the PRD's 3-colleague check; record only real results.
-7. **Press Submit Project by 30 Oct.** The form draft is filled and saved in the FiftyFive Chrome profile (8 of 8
-   sections: every answer from `docs/SUBMISSION_ANSWERS.md`, the repository link, the video on Google Drive, section
-   H "No"). Read it through, check the accuracy box, then submit. The form takes repository links, not a ZIP;
+7. **Submitted** on 29 Oct 2026 at 15:39 IST (the form says the submission can be edited any time). The answers are in
+   `docs/SUBMISSION_ANSWERS.md`; if one changes, edit the submission to match. The form takes repository links, not a ZIP;
    `scripts/build-submission.sh` stays for anyone who asks for one.
