@@ -23,7 +23,7 @@ Deadline: 30 Oct 2026, end of day. The owner submits on 29 Oct.
 ## Before building the ZIP
 
 1. The laptop phase is done: real holiday files committed, screenshots in the README.
-2. The branch is merged into `main`, CI is green on `main`, and the live link is in the README.
+2. CI is green on `main` (the working branch was renamed to `main` on 2026-10-29), and the live link is in the README.
 3. `scripts/quality-gate.sh` passes on `main`.
 
 ## Build the ZIP
