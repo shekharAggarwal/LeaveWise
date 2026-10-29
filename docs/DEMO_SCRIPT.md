@@ -6,7 +6,7 @@ screen come from the app on the day; don't quote a number here that the screen d
 
 ## The recorded video
 
-The submitted video (4:43, 1920x1080) was scripted and recorded by Claude Code rather than read live, and it says
+The [submitted video](https://drive.google.com/file/d/1B_lObLL0Qkde35j6B8jt_MahFo5-QZZn/view?usp=sharing) (4:43, 1920x1080) was scripted and recorded by Claude Code rather than read live, and it says
 so at the start. The narration is in `scripts/demo-video/narration.mjs`, spoken by macOS text-to-speech (voice
 Aman). Playwright drove the app (`docker compose up`) and the GitHub pages of commit `1920e04`, and ffmpeg put it
 together. Every number it says comes from `/api/plan` for the inputs on screen. It follows the order below, with

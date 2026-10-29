@@ -4,6 +4,9 @@ Enter your leave balance, holiday list, weekly offs and break style. LeaveWise r
 most days off inside breaks, and the tests prove it against a brute-force solver. It also shows a 12-month calendar
 and gives you an `.ics` file for your calendar app. One page, no login, nothing stored.
 
+**Demo video (4:43):** [on Google Drive](https://drive.google.com/file/d/1B_lObLL0Qkde35j6B8jt_MahFo5-QZZn/view?usp=sharing), with a product and a code walkthrough. The narration is a
+synthetic voice; Claude Code scripted and recorded it ([scripts/demo-video/](scripts/demo-video/)).
+
 **Live demo:** _link added after deployment (see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md))_
 
 Built for the FiftyFive Build With AI Hackathon 2026 by Shekhar Aggarwal, with Claude Code doing the building under

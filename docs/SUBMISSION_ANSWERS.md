@@ -45,7 +45,7 @@ It works from a 360 px phone up to desktop, can be used by keyboard, and was che
 
 ## B. Demo Video URL
 
-(The owner records it and pastes the link; it must be at most 5 minutes and open without signing in.)
+https://drive.google.com/file/d/1B_lObLL0Qkde35j6B8jt_MahFo5-QZZn/view?usp=sharing
 
 ## C. Architecture (Markdown)
 

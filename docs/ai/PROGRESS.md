@@ -265,5 +265,10 @@ Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px
   normalised to -16 LUFS, one frame every 12 s looked at for blank or misplaced frames. The headless screencast
   captures CSS pixels, so the desktop runs at 1920x1080 with the page zoomed 1.5x; the phone segment runs unzoomed
   at 390x844, because the app's bottom sheets don't follow a zoomed body.
-- Waiting for the owner: sign in to the form in the connected Chrome, choose where the video is hosted, and give the
-  final yes for section H, the accuracy box and Submit.
+- The Chrome extension's upload limit is 10 MB and the video is 36 MB (16.5 MB was the smallest that kept code
+  readable), so the owner dragged it into their Google Drive and shared it: https://drive.google.com/file/d/1B_lObLL0Qkde35j6B8jt_MahFo5-QZZn/view?usp=sharing. A fresh
+  signed-out Playwright browser opened the link to the player, with no sign-in redirect.
+- Form filled in the owner's FiftyFive profile and saved as a draft (8 of 8): all 20 answers match
+  `docs/SUBMISSION_ANSWERS.md` (SHA-256 of each field compared), the repository link, the video link, and section H
+  "No", as the owner chose. The owner chose to press Submit themselves; the accuracy box was already ticked in the
+  restored draft and was left as it was.

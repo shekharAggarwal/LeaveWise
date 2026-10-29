@@ -17,7 +17,7 @@ Deadline: 30 Oct 2026, end of day. The owner submits on 29 Oct.
 | Dependencies | `README.md` ("Dependencies", with licences) | done |
 | How AI was used: workflow, context engineering, skills, agents, instructions, guardrails | `docs/ai/AI_WORKFLOW.md`, `CLAUDE.md`, `frontend/CLAUDE.md`, `.claude/agents/`, `.claude/skills/`, `.claude/settings.json`, `.claude/hooks/` | done |
 | The AI-assisted QA approach | `docs/QA.md`, `docs/ai/AI_FAILURE_LOG.md`, the subagent table in `docs/ai/AI_WORKFLOW.md` | done |
-| Demo video, at most 5 minutes | Script: `docs/DEMO_SCRIPT.md`; recorded by `scripts/demo-video/` (4:43) | recorded; link added on upload |
+| Demo video, at most 5 minutes | Script: `docs/DEMO_SCRIPT.md`; recorded by `scripts/demo-video/` (4:43) | [on Google Drive](https://drive.google.com/file/d/1B_lObLL0Qkde35j6B8jt_MahFo5-QZZn/view?usp=sharing), opens without signing in |
 | No secrets in the repo or the ZIP | secretlint in `scripts/quality-gate.sh` (every commit) and in `scripts/build-submission.sh` (tracked files and the full history) | checked by the script at build time |
 
 ## Before building the ZIP
