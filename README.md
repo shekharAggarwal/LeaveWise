@@ -9,7 +9,15 @@ and gives you an `.ics` file for your calendar app. One page, no login, nothing 
 Built for the FiftyFive Build With AI Hackathon 2026 by Shekhar Aggarwal, with Claude Code doing the building under
 the rules in [CLAUDE.md](CLAUDE.md). The requirements are in [docs/PRD.md](docs/PRD.md).
 
-_Screenshots are added in the laptop phase (they need a real browser)._
+![The 2027 plan with Big trips: 12 leaves → 28 days off across 3 breaks](docs/screenshots/desktop-plan.png)
+
+<p>
+  <img src="docs/screenshots/desktop-calendar.png" alt="The year calendar with a leave day tapped" width="68%">
+  <img src="docs/screenshots/phone-plan.png" alt="The same plan on a phone" width="28%">
+</p>
+
+_2027, 12 leaves, Big trips, with FiftyFive's fixed holidays pasted in on their 2027 dates (the list and its sources
+are in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md#2027-holiday-dates))._
 
 ## The problem
 
@@ -61,7 +69,7 @@ scripts/quality-gate.sh
 ## Architecture
 
 ```
-React page (Astryx design system, Stone theme)  ──/api──>  Spring Boot 4.1 (Java 21)
+React page (Astryx, LeaveWise theme on Stone)   ──/api──>  Spring Boot 4.1 (Java 21)
                                                              ├─ planner   pure Java: day types, exact DP, results
                                                              ├─ holidays  one bundled JSON file per year, paste parser
                                                              ├─ ics       RFC 5545 writer
@@ -82,17 +90,17 @@ React page (Astryx design system, Stone theme)  ──/api──>  Spring Boot 4
 
 | Criterion (weight) | Where to look |
 | --- | --- |
-| **AI practice (35%)** | [docs/ai/AI_WORKFLOW.md](docs/ai/AI_WORKFLOW.md): what the AI did and what the owner did at each stage, and every subagent run with its findings. [docs/ai/AI_FAILURE_LOG.md](docs/ai/AI_FAILURE_LOG.md): 18 AI mistakes, how each was caught (tests, the oracle, reviewers, CI), the fix, and the rule added to [CLAUDE.md](CLAUDE.md) so it doesn't repeat. Context engineering: [CLAUDE.md](CLAUDE.md), [frontend/CLAUDE.md](frontend/CLAUDE.md), subagents in [.claude/agents/](.claude/agents/), skills in [.claude/skills/](.claude/skills/), hooks in [.claude/settings.json](.claude/settings.json). The owner's brief and review notes, word for word: [docs/ai/kickoff-prompt.md](docs/ai/kickoff-prompt.md), [docs/ai/REVIEW_LOG.md](docs/ai/REVIEW_LOG.md). Every cloud commit carries a `Claude-Session` trailer linking it to the session that made it (`git log`). |
-| **Engineering (30%)** | The exact planner and its proof: [ADR 0003](docs/adr/0003-optimisation-algorithm.md), [ADR 0005](docs/adr/0005-brute-force-oracle-testing.md), `backend/src/main/java/dev/leavewise/planner/`, `PlannerOracleProperties`. Tests: 312 backend, 72 frontend, PIT 98%. [scripts/quality-gate.sh](scripts/quality-gate.sh) runs 12 checks, including the real-browser check [frontend/scripts/browser-check.mjs](frontend/scripts/browser-check.mjs). CI: [.github/workflows/ci.yml](.github/workflows/ci.yml) (gate, dependency scan, Docker build). Decisions: [docs/adr/](docs/adr/). Delivery: [Dockerfile](Dockerfile), [render.yaml](render.yaml), [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). |
+| **AI practice (35%)** | [docs/ai/AI_WORKFLOW.md](docs/ai/AI_WORKFLOW.md): what the AI did and what the owner did at each stage, and every subagent run with its findings. [docs/ai/AI_FAILURE_LOG.md](docs/ai/AI_FAILURE_LOG.md): 21 AI mistakes, how each was caught (tests, the oracle, reviewers, CI), the fix, and the rule added to [CLAUDE.md](CLAUDE.md) so it doesn't repeat. Context engineering: [CLAUDE.md](CLAUDE.md), [frontend/CLAUDE.md](frontend/CLAUDE.md), subagents in [.claude/agents/](.claude/agents/), skills in [.claude/skills/](.claude/skills/), hooks in [.claude/settings.json](.claude/settings.json). The owner's brief and review notes, word for word: [docs/ai/kickoff-prompt.md](docs/ai/kickoff-prompt.md), [docs/ai/REVIEW_LOG.md](docs/ai/REVIEW_LOG.md). Every cloud commit carries a `Claude-Session` trailer linking it to the session that made it (`git log`). |
+| **Engineering (30%)** | The exact planner and its proof: [ADR 0003](docs/adr/0003-optimisation-algorithm.md), [ADR 0005](docs/adr/0005-brute-force-oracle-testing.md), `backend/src/main/java/dev/leavewise/planner/`, `PlannerOracleProperties`. Tests: 318 backend, 115 frontend, PIT 183 of 187 mutants killed (98%). [scripts/quality-gate.sh](scripts/quality-gate.sh) runs 12 checks, including the real-browser check [frontend/scripts/browser-check.mjs](frontend/scripts/browser-check.mjs). CI: [.github/workflows/ci.yml](.github/workflows/ci.yml) (gate, dependency scan, Docker build). Decisions: [docs/adr/](docs/adr/). Delivery: [Dockerfile](Dockerfile), [render.yaml](render.yaml), [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). |
 | **Product (25%)** | The PRD: [docs/PRD.md](docs/PRD.md). The PRD-rule-to-test map: [docs/QA.md](docs/QA.md). Error messages word for word from the PRD: [docs/API.md](docs/API.md). Phone first (360 px), keyboard use, colour never the only signal, WCAG 2.2 AA checked with axe in Chromium. Interpretations made and raised with the owner: [docs/ai/PROGRESS.md](docs/ai/PROGRESS.md). |
 | **Idea (10%)** | The problem above: a yearly chore that calendar apps don't solve, answered with a provably best plan in under a minute. |
 
 ## Limitations
 
-- **Holiday data:** the bundled lists come only from official Government of India documents, with the source in
-  each file ([ADR 0007](docs/adr/0007-holiday-data-source.md)). They are built in the laptop phase, since the
-  government sites can't be reached from the cloud build machine. Until then, every year shows "No official list
-  bundled", and users add or paste their own holidays. The app always reminds users to check their company's list.
+- **Holiday data:** 2026 comes prefilled with FiftyFive Technologies' own list (24 holidays, the 13 floaters
+  unticked), with its source in the file ([ADR 0007](docs/adr/0007-holiday-data-source.md) and its amendment). No
+  list is bundled for 2027 yet, so users add or paste their company's holidays. The app always reminds users to
+  check their company's official list.
 - **Ties favour early dates:** among equally good plans, the one with the earliest leave dates wins (the PRD's
   rule), so breaks can cluster early in the year.
 - **Out of scope for the MVP** (PRD): half days and leave types, alternate-Saturday patterns (workaround: add those

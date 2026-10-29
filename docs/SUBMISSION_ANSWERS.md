@@ -130,6 +130,8 @@ For the UI redesign I sketched the screens with Claude Design, picked the look I
 
 My part was the idea, the requirements, the reviews at each STOP, the decisions it couldn't make on its own (like which holiday list to preload), and the real-world steps like checking on a phone and deploying.
 
+Even the demo video is AI-made: Claude Code wrote the script, recorded the app and the repo with Playwright, and narrated it with macOS text-to-speech. The video says so at the start.
+
 ## D. Which AI tools and models were used?
 
 - Claude Code was the main tool, run partly in the cloud (Claude Code on the web) and partly on my laptop.
@@ -163,7 +165,7 @@ The plan was the brief: five phases (scaffolding and context, planner core, API 
 
 I didn't prompt it line by line. Instead the brief set the rules: test first, never invent data, commit after every green step, and don't ask me questions between STOPs but make the most reasonable choice and record it. Then it worked through a phase on its own. When something in the PRD was ambiguous, it picked the most reasonable reading, wrote it down in PROGRESS.md under "Decisions and interpretations", and raised it at the next STOP. That kept it moving without guessing silently.
 
-Iteration happened in small loops: write a failing test, write the code, run the tests, run the quality gate, commit and push. Every green step was its own Conventional Commit, so the git history (42 commits) shows the real order of work.
+Iteration happened in small loops: write a failing test, write the code, run the tests, run the quality gate, commit and push. Every green step was its own Conventional Commit, so the git history shows the real order of work.
 
 The bigger iterations came from reviews. The phone layout, the redesign and the holiday list all came from me looking at the app and asking for changes. Each time the same loop ran: plan the change, update tests, review with a subagent, fix, commit.
 
@@ -237,12 +239,12 @@ The main risk in this app is the planner giving a plan that looks fine but isn't
 
 ## F. Tests created or executed
 
-- Over 300 backend tests (JUnit 6 and jqwik): planner rules, ties, year edges, current-year planning with an injected clock, leap year 2028, free long weekends, holiday parsing, `.ics` output, API validation and errors, security headers, rate and size limits.
+- 318 backend tests (JUnit 6 and jqwik): planner rules, ties, year edges, current-year planning with an injected clock, leap year 2028, free long weekends, holiday parsing, `.ics` output, API validation and errors, security headers, rate and size limits.
 - The oracle property test: 1,500 random calendars, all 1,500 equal to brute force (539 of them with breaks, 702 with more leave than working days).
 - A determinism test: holidays in any order give the same plan.
 - A performance test: a full year with 60 leave days plans in 3 to 8 ms, against the PRD's limit of 1 second.
 - Mutation testing: 183 of 187 planner mutants killed (98%). The four survivors were looked at one by one: two are equivalent mutants, and two are a safety bound the API can't reach.
-- More than 110 frontend tests (Vitest and Testing Library), including the main flow from defaults to results, error states and axe checks.
+- 115 frontend tests (Vitest and Testing Library), including the main flow from defaults to results, error states and axe checks.
 - The real-browser check (Playwright) in the quality gate, in four app states at two widths.
 - CI on GitHub Actions runs the same gate, an osv-scanner dependency scan of the backend and frontend, and a Docker image build with a smoke test.
 
@@ -257,7 +259,7 @@ The AI's own checks caught its own mistakes, and I logged 21 of them in `docs/ai
 - The first CI run's dependency scan found critical Tomcat and high Jackson advisories, which were patched. The AI had marked that step done before the backend was scanned, so a rule was added: a check that couldn't run doesn't count as passed.
 - The quality gate caught a flaky test that matched error text which the design system also announces in a hidden live region.
 
-Thirteen of these led to a new rule in CLAUDE.md, so the same kind of mistake didn't come back.
+Fifteen of the 21 added a rule to CLAUDE.md or frontend/CLAUDE.md, so the same kind of mistake didn't come back.
 
 ## F. How were test results validated?
 
