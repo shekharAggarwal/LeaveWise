@@ -195,7 +195,7 @@ Made without asking, as the brief says; each is also in the ADR or doc named.
 - [x] Docker image built in the cloud VM, output shown
 - [ ] Host config (default Render, current pricing checked) and docs/DEPLOYMENT.md (config and doc done; pricing not checkable: render.com is blocked from the VM, so third-party 2026 figures are marked unverified and the owner confirms them, HUMAN_TODO step 3)
 - [x] README.md (problem, solution, demo link placeholder, quick start, architecture, limitations, dependencies, "For judges" table)
-- [ ] LAPTOP: README screenshots
+- [x] LAPTOP: README screenshots (docs/screenshots/, Playwright Chromium on the laptop, 2026-10-29)
 - [x] docs/ai/AI_WORKFLOW.md finished (stages, subagent table, Claude-Session trailer note)
 - [x] docs/DEMO_SCRIPT.md
 - [x] docs/SUBMISSION.md and the secret-scan plus ZIP script
@@ -255,3 +255,15 @@ Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px
   eslint-plugin-react-hooks). `npm update` moved them to 3.1.9, 7.30.1 and 4.6.7 (engines checked against Node 22);
   CI's osv-scanner image run locally then reported no issues. The `braces` ignore was unused (advisory withdrawn
   2026-10-23) and was removed.
+- README: screenshots of the running app (Playwright Chromium on the laptop, `scripts/demo-video/screenshots.mjs`),
+  and counts brought up to date from the gate run: 318 backend and 115 frontend tests, PIT 183 of 187, 21 failure-log
+  entries (15 added a rule). The 2026 holiday text now says it is the FiftyFive list.
+- Demo video made by `scripts/demo-video/`: 4:43 (283.4 s), 1920x1080 H.264 and AAC, 36 MB. Narration by macOS `say`
+  (voice Aman, about 190 words a minute), captions on screen, the synthetic voice disclosed at the start. Spoken
+  numbers come from `/api/plan` for the on-screen inputs (12 leaves: 41 days off in 12 breaks; Big trips: 28 days
+  in 3). Checks on the file: every clip starts within 0.05 s of its caption (ffmpeg silencedetect), loudness
+  normalised to -16 LUFS, one frame every 12 s looked at for blank or misplaced frames. The headless screencast
+  captures CSS pixels, so the desktop runs at 1920x1080 with the page zoomed 1.5x; the phone segment runs unzoomed
+  at 390x844, because the app's bottom sheets don't follow a zoomed body.
+- Waiting for the owner: sign in to the form in the connected Chrome, choose where the video is hosted, and give the
+  final yes for section H, the accuracy box and Submit.

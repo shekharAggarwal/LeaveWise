@@ -32,4 +32,7 @@ Steps that need the owner's accounts, money decisions or judgement. Full order i
    choice before the first apply, then run "After every deploy" there (rate limit per device included).
 5. **Add the live link** to `README.md` and push.
 6. **Test on a phone** (the PRD's acceptance item) and run the PRD's 3-colleague check; record only real results.
-7. Record the demo, build the ZIP and submit by 29 Oct (STOP 4 gives the exact steps).
+7. **Submit by 30 Oct** (the plan was 29 Oct). Claude recorded the demo video (`scripts/demo-video/`, 4:43) and
+   drafted every form answer (`docs/SUBMISSION_ANSWERS.md`). The owner signs in to the form, picks where the video
+   is hosted (it must open without signing in), and confirms section H and the accuracy box before Submit. The form
+   takes repository links, not a ZIP; `scripts/build-submission.sh` stays for anyone who asks for one.

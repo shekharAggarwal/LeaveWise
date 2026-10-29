@@ -1,13 +1,15 @@
 # Submission checklist
 
 Everything the organisers ask for (from the brief, `docs/ai/kickoff-prompt.md`), where it lives, and its state.
+The organisers' form (hackathon-55.lovable.app/submit) asks for repository links, a demo video link and written
+answers, not a ZIP. The answers, each within the form's limit, are in [SUBMISSION_ANSWERS.md](SUBMISSION_ANSWERS.md).
 Deadline: 30 Oct 2026, end of day. The owner submits on 29 Oct.
 
 | Required | Where | State |
 | --- | --- | --- |
 | Product description and problem statement | `README.md` ("The problem", "The solution"), `docs/PRD.md` | done |
-| A working demo link | `README.md`, "Live demo" | after deployment (owner, `docs/HUMAN_TODO.md`) |
-| ZIP of the whole project with its full git history | `scripts/build-submission.sh` builds `dist/leavewise-submission.zip` | build after the final commit on `main` |
+| A working demo link | `README.md`, "Live demo" | optional on the form; after deployment (owner, `docs/HUMAN_TODO.md`) |
+| ZIP of the whole project with its full git history | `scripts/build-submission.sh` builds `dist/leavewise-submission.zip` | not asked for by the form (it takes the public repository link); build it if the organisers ask |
 | Architecture | `docs/ARCHITECTURE.md`, `README.md` ("Architecture") | done |
 | Stack | `README.md` ("Architecture", "Dependencies"), `docs/adr/0008-astryx-design-system.md` | done |
 | Technical decisions | `docs/adr/` (8 ADRs), "Decisions and interpretations" in `docs/ai/PROGRESS.md` | done |
@@ -15,7 +17,7 @@ Deadline: 30 Oct 2026, end of day. The owner submits on 29 Oct.
 | Dependencies | `README.md` ("Dependencies", with licences) | done |
 | How AI was used: workflow, context engineering, skills, agents, instructions, guardrails | `docs/ai/AI_WORKFLOW.md`, `CLAUDE.md`, `frontend/CLAUDE.md`, `.claude/agents/`, `.claude/skills/`, `.claude/settings.json`, `.claude/hooks/` | done |
 | The AI-assisted QA approach | `docs/QA.md`, `docs/ai/AI_FAILURE_LOG.md`, the subagent table in `docs/ai/AI_WORKFLOW.md` | done |
-| Demo video, at most 5 minutes | Script: `docs/DEMO_SCRIPT.md` | owner records it |
+| Demo video, at most 5 minutes | Script: `docs/DEMO_SCRIPT.md`; recorded by `scripts/demo-video/` (4:43) | recorded; link added on upload |
 | No secrets in the repo or the ZIP | secretlint in `scripts/quality-gate.sh` (every commit) and in `scripts/build-submission.sh` (tracked files and the full history) | checked by the script at build time |
 
 ## Before building the ZIP

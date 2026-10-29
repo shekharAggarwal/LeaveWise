@@ -4,6 +4,15 @@ For the recorded demo. The submission form asks for at most 5 minutes with both 
 walkthrough. Times are cumulative; the spoken lines are a guide, not a script to read word for word. Numbers on
 screen come from the app on the day; don't quote a number here that the screen doesn't show.
 
+## The recorded video
+
+The submitted video (4:43, 1920x1080) was scripted and recorded by Claude Code rather than read live, and it says
+so at the start. The narration is in `scripts/demo-video/narration.mjs`, spoken by macOS text-to-speech (voice
+Aman). Playwright drove the app (`docker compose up`) and the GitHub pages of commit `1920e04`, and ffmpeg put it
+together. Every number it says comes from `/api/plan` for the inputs on screen. It follows the order below, with
+shorter wording. To make it again (macOS, ffmpeg, the app on port 8080), run `node tts.mjs`, `node record.mjs` and
+`node encode.mjs` in `scripts/demo-video/`.
+
 **Before recording**
 
 - Start the app: `docker compose up`, then open http://localhost:8080 (or the live URL once deployed), at a width
