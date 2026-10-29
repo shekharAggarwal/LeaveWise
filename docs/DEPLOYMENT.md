@@ -53,7 +53,7 @@ both on render.com/pricing before choosing.
 
 Steps (owner only: they create an account and may cost money if a paid plan is picked):
 
-1. Merge `claude/inspiring-darwin-2m8wjb` into `main` on GitHub, and check that the CI workflow is green on `main`.
+1. Check that the CI workflow is green on `main` (the working branch was renamed to `main` on 2026-10-29).
 2. Sign in to [Render](https://render.com) with GitHub, and give Render access to this repository only.
 3. Optional, before step 4: choose a region nearer India. Check Render's region list (the region picker on a new
    web service, and the `region` values in Render's Blueprint reference); if one is nearer India than the default,

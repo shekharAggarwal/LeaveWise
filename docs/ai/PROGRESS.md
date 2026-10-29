@@ -272,3 +272,7 @@ Quality gate 12 of 12 PASS; 113 frontend tests; browser check at 360 and 1280 px
   `docs/SUBMISSION_ANSWERS.md` (SHA-256 of each field compared), the repository link, the video link, and section H
   "No", as the owner chose. The owner chose to press Submit themselves; the accuracy box was already ticked in the
   restored draft and was left as it was.
+- The owner asked to rename the branch to `main`. Done on GitHub with its Rename branch action in the owner's Chrome
+  (history kept, `main` is the default, old links redirect), and locally with `git branch -m`. `.claude/settings.json`
+  still blocks Claude from pushing to `main`, as the form's guardrails answer says, so later changes go on a
+  `claude/...` branch for the owner to merge.
